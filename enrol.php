@@ -77,7 +77,7 @@ class enrolment_plugin_profilefield {
 
 			// real trap for profile field	    	
 	    	if (isset($enrol_profilefield_value) && !empty($enrol_profilefield_fieldid)){
-		    	$userdata = get_field_select('user_info_data', 'data', " userid = $USER->id AND fieldid = $enrol_profilefield_fieldid ");
+		    	$userdata = get_field_select('user_info_data', 'data', " userid = $USER->id AND fieldid LIKE '{$enrol_profilefield_fieldid}' ");
 		    	if ($userdata != $enrol_profilefield_value){
 		            print_header($strloginto, $course->fullname, $navigation);
 		    		print_error('badprofile', 'enrol_profilefield');
