@@ -31,8 +31,8 @@ require_once($CFG->libdir.'/formslib.php');
 class enrol_profilefield_edit_form extends moodleform {
 
     function definition() {
-    	global $DB;
-    	
+        global $DB;
+
         $mform = $this->_form;
 
         list($instance, $plugin, $context) = $this->_customdata;
@@ -40,7 +40,6 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('header', 'header', get_string('pluginname', 'enrol_profilefield'));
 
         $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'));
-        $mform->setType('name', PARAM_CLEANHTML);
 
         $options = array(ENROL_INSTANCE_ENABLED  => get_string('yes'),
                          ENROL_INSTANCE_DISABLED => get_string('no'));
@@ -48,24 +47,23 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->setDefault('status', $plugin->get_config('status'));
 
         $userfields = array(
-        	'country' => get_string('country'),
-        	'lang' => get_string('language'),
-        	'institution' => get_string('institution'),
-        	'department' => get_string('department'),
-        	'city' => get_string('city'),
+            'country' => get_string('country'),
+            'lang' => get_string('language'),
+            'institution' => get_string('institution'),
+            'department' => get_string('department'),
+            'city' => get_string('city'),
         );
         
         $userextrafields = $DB->get_records('user_info_field', array());
-        if ($userextrafields){
-        	foreach($userextrafields as $uf){
-        		$userfields['profile_field_'.$uf->shortname] = $uf->name;
-        	}
+        if ($userextrafields) {
+            foreach ($userextrafields as $uf) {
+                $userfields['profile_field_'.$uf->shortname] = $uf->name;
+            }
         }
 
         $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
 
         $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'), array('size' => 10));
-        $mform->setType('profilevalue', PARAM_TEXT);
 
         if ($instance->id) {
             $roles = get_default_enrol_roles($context, $instance->roleid);
@@ -78,7 +76,6 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('checkbox', 'notifymanagers', get_string('notifymanagers', 'enrol_profilefield'));
 
         $mform->addElement('textarea', 'notificationtext', get_string('notificationtext', 'enrol_profilefield'), array('cols' => 60, 'rows' => 10));
-        $mform->setType('notificationtext', PARAM_CLEANHTML);
         $mform->addHelpButton('notificationtext', 'notificationtext', 'enrol_profilefield');
 
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), array('optional' => true, 'defaultunit' => 86400));
@@ -94,28 +91,27 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_profilefield');
 
         $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
         $mform->addElement('hidden', 'courseid');
-        $mform->setType('courseid', PARAM_INT);
 
         $this->add_action_buttons(true, ($instance->id ? null : get_string('addinstance', 'enrol')));
 
-		$instance->profilefield = $instance->customchar1;
-		$instance->profilevalue = $instance->customchar2;
-		$instance->notifymanagers = $instance->customint1;
-		if (empty($instance->customtext1)){
-			$instance->customtext1 = get_string('defaultnotification', 'enrol_profilefield');
-		}
-		$instance->notificationtext = $instance->customtext1;
+        $instance->profilefield = $instance->customchar1;
+        $instance->profilevalue = $instance->customchar2;
+        $instance->notifymanagers = $instance->customint1;
+        if (empty($instance->customtext1)) {
+            $instance->customtext1 = get_string('defaultnotification', 'enrol_profilefield');
+        }
+        $instance->notificationtext = $instance->customtext1;
         $this->set_data($instance);
     }
 
     function validation($data, $files) {
         global $DB, $CFG;
+
         $errors = parent::validation($data, $files);
 
         list($instance, $plugin, $context) = $this->_customdata;
-        
+
         if ($data['status'] == ENROL_INSTANCE_ENABLED) {
             if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
                 $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_profilefield');

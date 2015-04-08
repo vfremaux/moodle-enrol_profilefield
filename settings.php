@@ -15,10 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Category enrolment plugin settings and presets.
+ * Profilefield enrolment plugin settings and presets.
  *
- * @package    enrol_category
- * @copyright  2010 Petr Skoda {@link http://skodak.org}
+ * @package    enrol_profilefield
+ * @copyright  2010 Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,6 +28,7 @@ if ($ADMIN->fulltree) {
 
     //--- general settings -----------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_profilefield_settings', '', get_string('pluginname_desc', 'enrol_profilefield')));
+
 
     //--- enrol instance defaults ----------------------------------------------------------------------------
 

@@ -17,7 +17,8 @@
 /**
  * Profile field enrolment plugin.
  *
- * This plugin allows immediate enrolment on course access to anyone matching profile rules.
+ * This plugin provides automatic enrol when a user enters the course with
+ * a convenient profile value.
  *
  * @package    enrol
  * @subpackage profilefield
@@ -106,7 +107,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         if ($instance->enrol !== 'profilefield') {
             throw new coding_exception('invalid enrol instance!');
         }
-        $context = get_context_instance(CONTEXT_COURSE, $instance->courseid);
+        $context = context_course::instance($instance->courseid);
 
         $icons = array();
 
@@ -119,24 +120,24 @@ class enrol_profilefield_plugin extends enrol_plugin {
     }
 
      /**
-     * Gets an array of the user enrolment actions. These are provided
-     * in the enrolled user list, in the enrolment method column.
-     *
-     * @param course_enrolment_manager $manager
-     * @param stdClass $ue A user enrolment object
-     * @return array An array of user_enrolment_actions
-     */
+      * Gets an array of the user enrolment actions. These are provided
+      * in the enrolled user list, in the enrolment method column.
+      *
+      * @param course_enrolment_manager $manager
+      * @param stdClass $ue A user enrolment object
+      * @return array An array of user_enrolment_actions
+      */
     public function get_user_enrolment_actions(course_enrolment_manager $manager, $ue) {
         $actions = array();
         $context = $manager->get_context();
         $instance = $ue->enrolmentinstance;
         $params = $manager->get_moodlepage()->url->params();
         $params['ue'] = $ue->id;
-        if ($this->allow_unenrol($instance) && has_capability("enrol/profilefield:unenrol", $context)) {
+        if ($this->allow_unenrol($instance) && has_capability('enrol/profilefield:unenrol', $context)) {
             $url = new moodle_url('/enrol/unenroluser.php', $params);
             $actions[] = new user_enrolment_action(new pix_icon('t/delete', ''), get_string('unenrol', 'enrol'), $url, array('class' => 'unenrollink', 'rel' => $ue->id));
         }
-        if ($this->allow_manage($instance) && has_capability("enrol/profilefield:manage", $context)) {
+        if ($this->allow_manage($instance) && has_capability('enrol/profilefield:manage', $context)) {
             $url = new moodle_url('/enrol/profilefield/editenrolment.php', $params);
             $actions[] = new user_enrolment_action(new pix_icon('t/edit', ''), get_string('edit'), $url, array('class' => 'editenrollink', 'rel' => $ue->id));
         }
@@ -154,7 +155,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         global $CFG, $OUTPUT, $SESSION, $USER, $DB;
 
         if (isguestuser()) {
-            // Can not enrol guest !
+            // Can not enrol guest!!
             return null;
         }
 
@@ -175,12 +176,12 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         if ($this->check_user_profile_conditions($instance)) {
 
-            require_once("$CFG->dirroot/enrol/profilefield/enrol_form.php");
-            require_once("$CFG->dirroot/group/lib.php");
-    
+            require_once($CFG->dirroot.'/enrol/profilefield/enrol_form.php');
+            require_once($CFG->dirroot.'/group/lib.php');
+
             $form = new enrol_profilefield_enrol_form(NULL, $instance);
             $instanceid = optional_param('instance', 0, PARAM_INT);
-    
+
             if ($instance->id == $instanceid) {
                 if ($data = $form->get_data()) {
                     $enrol = enrol_get_plugin('profilefield');
@@ -190,13 +191,13 @@ class enrol_profilefield_plugin extends enrol_plugin {
                     } else {
                         $timeend = 0;
                     }
-    
+
                     $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $timeend);
                     add_to_log($instance->courseid, 'course', 'enrol', '../enrol/users.php?id='.$instance->courseid, $instance->courseid); //there should be userid somewhere!
 
                     if (!empty($data->enrolpassword)) {
-                        // it must be a group enrolment, let's assign group too
-                        if ($groups = $DB->get_records('groups', array('courseid' => $instance->courseid), 'id', 'id, enrolmentkey')){
+                        // It must be a group enrolment, let's assign group too.
+                        if ($groups = $DB->get_records('groups', array('courseid' => $instance->courseid), 'id', 'id, enrolmentkey')) {
                             foreach ($groups as $group) {
                                 if (empty($group->enrolmentkey)) {
                                     continue;
@@ -209,7 +210,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
                         }
                     }
     
-                    // send notification to teachers 
+                    // Send notification to teachers.
                     if ($instance->customint1) {
                         $this->notify_owners($instance, $USER);
                     }
@@ -232,28 +233,27 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
     /**
      * checks all user profile conditions to get in
-     *
      */
-    function check_user_profile_conditions(stdClass $instance){
+    function check_user_profile_conditions(stdClass $instance) {
         global $USER, $DB;
-        
+
         $profilefield = $instance->customchar1;
         $profilevalue = $instance->customchar2;
         
-        if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)){
-            // case of user custom fields
-            
-            if (!$pfield = $DB->get_record('user_info_field', array('shortname' => $matches[1]))){
+        if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)) {
+            // Case of user custom fields.
+
+            if (!$pfield = $DB->get_record('user_info_field', array('shortname' => $matches[1]))) {
                 return false;
             }
-            
+
             $uservalue = $DB->get_field('user_info_data', 'data', array('userid' => $USER->id, 'fieldid' => $pfield->id));
             if ($uservalue == $profilevalue) {
                 return true;
             }
         } else {
-            // we guess it is a standard user attribute
-            if (isset($USER->$profilefield)){
+            // We guess it is a standard user attribute.
+            if (isset($USER->$profilefield)) {
                 if ($profilevalue == $USER->$profilefield) {
                     return true;
                 }
@@ -269,7 +269,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         $course = $DB->get_record('course', array('id' => $instance->courseid), '*', MUST_EXIST);
 
         $a = new stdClass();
-        $a->profileurl = $CFG->wwwroot."/user/view.php?id={$appliant->id}&course={$course->id}";
+        $a->profileurl = new moodle_url('/user/view.php', array('id' => $appliant->id, 'course' => $course->id));
 
         if (trim($instance->customtext1) !== '') {
             $message = $instance->customtext1;
@@ -287,15 +287,6 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
             foreach ($managers as $m) {
                 $message = str_replace('<%%TEACHER%%>', fullname($m), $message);
-                // directly emailing message rather than using messaging
-                /*
-                echo "Mailing notification to ".fullname($m);
-                echo "-------<br/>";
-                echo "<b>$subject</b><br/>";
-                echo $message;
-                echo "-------<br/>";
-                die; // for test
-                */                
                 email_to_user($m, $appliant, $subject, $message);
             }
         } else {

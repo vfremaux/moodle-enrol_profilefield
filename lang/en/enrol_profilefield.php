@@ -29,6 +29,7 @@ $string['nonexistantprofilefielderror'] = 'This field is not defined in user pro
 $string['notificationtext'] = 'Notification template';
 $string['notificationtext_help'] = 'The content of the mail can be written here, using &lt;%%USERNAME%%&gt;, &lt;%%COURSE%%&gt;, &lt;%%URL%%&gt; and &lt;%%TEACHER%%&gt; placeholders. Note that any multilanguage span tag will be processed based on the actual language of the recipient.';
 $string['notifymanagers'] = 'Notify managers?';
+$string['passwordinvalid'] = 'Password is invalid';
 $string['pluginname'] = 'Profile Field Enrolment';
 $string['pluginname_desc'] = 'This method allows direct enrolment in course if user has a profile field set to the expected value';
 $string['profilefield'] = 'User profile field';

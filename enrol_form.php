@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-include_once $CFG->libdir.'/formslib.php';
+require_once($CFG->libdir.'/formslib.php');
 
-class enrol_profilefield_enrol_form extends moodleform{
+class enrol_profilefield_enrol_form extends moodleform {
     protected $instance;
     protected $toomany = false;
 
@@ -42,10 +42,11 @@ class enrol_profilefield_enrol_form extends moodleform{
         $mform->addElement('header', 'profilefieldheader', $heading);
 
         if ($instance->customint3 > 0) {
-            // max enrol limit specified
+            // Max enrol limit specified.
             $count = $DB->count_records('user_enrolments', array('enrolid' => $instance->id));
             if ($count >= $instance->customint3) {
-                // Bad luck, no more self enrolments here !
+
+                // Bad luck, no more self enrolments here.
                 $this->toomany = true;
                 $mform->addElement('static', 'notice', '', get_string('maxenrolledreached', 'enrol_profilefield'));
                 return;
@@ -53,7 +54,7 @@ class enrol_profilefield_enrol_form extends moodleform{
         }
 
         // Change the id of self enrolment key input as there can be multiple self enrolment methods.
-        $mform->addElement('passwordunmask', 'grouppassword', get_string('grouppassword', 'enrol_profilefield'), array('id' => $instance->id."_enrolpassword"));
+        $mform->addElement('passwordunmask', 'enrolpassword', get_string('grouppassword', 'enrol_profilefield'), array('id' => $instance->id."_enrolpassword"));
 
         $this->add_action_buttons(false, get_string('enrolme', 'enrol_profilefield'));
 
@@ -77,23 +78,23 @@ class enrol_profilefield_enrol_form extends moodleform{
             return $errors;
         }
 
-		if (!empty($data['enrolpassword'])){
-	        $groups = $DB->get_records('groups', array('courseid' => $instance->courseid), 'id ASC', 'id, enrolmentkey');
-	        $found = false;
-	        foreach ($groups as $group) {
-	            if (empty($group->enrolmentkey)) {
-	                continue;
-	            }
-	            if ($group->enrolmentkey === $data['enrolpassword']) {
-	                $found = true;
-	                break;
-	            }
-	        }
-	        if (!$found) {
-	            // We can not hint because there are probably multiple passwords.
-	            $errors['enrolpassword'] = get_string('passwordinvalid', 'enrol_profilefield');
-	        }
-	    }
+        if (!empty($data['enrolpassword'])) {
+            $groups = $DB->get_records('groups', array('courseid' => $instance->courseid), 'id ASC', 'id, enrolmentkey');
+            $found = false;
+            foreach ($groups as $group) {
+                if (empty($group->enrolmentkey)) {
+                    continue;
+                }
+                if ($group->enrolmentkey === $data['enrolpassword']) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                // We can not hint because there are probably multiple passwords.
+                $errors['enrolpassword'] = get_string('passwordinvalid', 'enrol_profilefield');
+            }
+        }
 
         return $errors;
     }

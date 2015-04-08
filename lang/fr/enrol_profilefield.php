@@ -27,6 +27,7 @@ $string['nonexistantprofilefielderror'] = 'Ce champ personnalisé de profil util
 $string['notificationtext'] = 'Modèle de notification aux enseignants';
 $string['notificationtext_help'] = 'Le contenu de la notification envoyée aux enseignants du cours peut être écrite ici, en utilisant des emplacements &lt;%%USERNAME%%&gt;, &lt;%%COURSE%%&gt;, &lt;%%URL%%&gt; and &lt;%%TEACHER%%&gt;. Notez que les balises multilingues seront traitées, selon la langue du destinataire.';
 $string['notifymanagers'] = 'Notifier les enseignants?';
+$string['passwordinvalid'] = 'Le mot de passe est invalide';
 $string['pluginname'] = 'Inscription basée sur le profil utilisateur';
 $string['pluginname_desc'] = 'Cette méthode permet une inscription directe si un champ du profil utilisateur contient une valeur attendue.';
 $string['profilefield'] = 'Champ du profil utilisateur';

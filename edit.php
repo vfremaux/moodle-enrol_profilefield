@@ -18,25 +18,26 @@
  * Adds new instance of enrol_paypal to specified course
  * or edits current instance.
  *
- * @package    enrol
- * @subpackage paypal
- * @copyright  2010 Petr Skoda  {@link http://skodak.org}
+ * @package    enrol_profilefield
+ * @category   enrol
+ * @copyright  2010 Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../config.php');
 require_once('edit_form.php');
 
-$courseid   = required_param('courseid', PARAM_INT);
+$courseid = required_param('courseid', PARAM_INT);
 $instanceid = optional_param('id', 0, PARAM_INT); // instanceid
 
-$course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
-$context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $courseid), '*');
+$context = context_course::instance($course->id);
 
 require_login($course);
 require_capability('enrol/profilefield:config', $context);
 
-$PAGE->set_url('/enrol/profilefield/edit.php', array('courseid' => $course->id, 'id' => $instanceid));
+$utl = new moodle_url('/enrol/profilefield/edit.php', array('courseid' => $course->id, 'id' => $instanceid));
+$PAGE->set_url($url);
 $PAGE->set_pagelayout('admin');
 
 $return = new moodle_url('/enrol/instances.php', array('id' => $course->id));
@@ -47,10 +48,11 @@ if (!enrol_is_enabled('profilefield')) {
 $plugin = enrol_get_plugin('profilefield');
 
 if ($instanceid) {
-    $instance = $DB->get_record('enrol', array('courseid' => $course->id, 'enrol' => 'profilefield', 'id' => $instanceid), '*', MUST_EXIST);
+    $instance = $DB->get_record('enrol', array('courseid' => $course->id, 'enrol' => 'profilefield', 'id' => $instanceid), '*');
 } else {
     require_capability('moodle/course:enrolconfig', $context);
-    // no instance yet, we have to add new instance
+
+    // No instance yet, we have to add new instance.
     navigation_node::override_active_url(new moodle_url('/enrol/instances.php', array('id' => $course->id)));
     $instance = new stdClass();
     $instance->id       = null;
@@ -65,7 +67,6 @@ $mform = new enrol_profilefield_edit_form(NULL, array($instance, $plugin, $conte
 
 if ($mform->is_cancelled()) {
     redirect($return);
-
 } else if ($data = $mform->get_data()) {
     if ($instance->id) {
         $reset = ($instance->status != $data->status);
@@ -89,10 +90,10 @@ if ($mform->is_cancelled()) {
 
     } else {
         $fields = array('status' => $data->status, 
-        				'name' => $data->name, 
-        				'profilefield' => $data->profilefield, 
-        				'profilevalue' => $data->profilevalue, 
-        				'roleid' => $data->roleid,
+                        'name' => $data->name, 
+                        'profilefield' => $data->profilefield, 
+                        'profilevalue' => $data->profilevalue, 
+                        'roleid' => $data->roleid,
                         'enrolperiod' => $data->enrolperiod, 
                         'enrolstartdate' => $data->enrolstartdate, 
                         'enrolenddate' => $data->enrolenddate
