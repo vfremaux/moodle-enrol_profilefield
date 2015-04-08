@@ -65,7 +65,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
      * @return moodle_url page url
      */
     public function get_newinstance_link($courseid) {
-        $context = get_context_instance(CONTEXT_COURSE, $courseid, MUST_EXIST);
+        $context = context_course::instance($courseid, MUST_EXIST);
 
         if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/profilefield:config', $context)) {
             return NULL;
@@ -281,7 +281,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
             $subject = get_string('newcourseenrol', 'enrol_profilefield', format_string($course->fullname));
         }
 
-        $context = get_context_instance(CONTEXT_COURSE, $course->id);
+        $context = context_course::instance($course->id);
 
         if ($managers = get_users_by_capability($context, 'enrol/profilefield:manage', 'u.id, firstname, lastname, email, emailstop')) {
 
