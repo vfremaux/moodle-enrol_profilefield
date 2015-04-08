@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -33,11 +32,11 @@ $instance = $DB->get_record('enrol', array('id' => $enrolid, 'enrol' => 'profile
 $course = $DB->get_record('course', array('id'=>$instance->courseid), '*', MUST_EXIST);
 $context = get_context_instance(CONTEXT_COURSE, $course->id, MUST_EXIST);
 
-require_login();
+require_login($course);
+
 if (!is_enrolled($context)) {
     redirect(new moodle_url('/'));
 }
-require_login($course);
 
 $plugin = enrol_get_plugin('profilefield');
 
@@ -56,8 +55,10 @@ if ($confirm and confirm_sesskey()) {
 }
 
 echo $OUTPUT->header();
+
 $yesurl = new moodle_url($PAGE->url, array('confirm' => 1, 'sesskey' => sesskey()));
 $nourl = new moodle_url('/course/view.php', array('id' => $course->id));
 $message = get_string('unenrolselfconfirm', 'enrol_profilefield', format_string($course->fullname));
 echo $OUTPUT->confirm($message, $yesurl, $nourl);
+
 echo $OUTPUT->footer();

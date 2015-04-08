@@ -29,7 +29,6 @@ if ($ADMIN->fulltree) {
     //--- general settings -----------------------------------------------------------------------------------
     $settings->add(new admin_setting_heading('enrol_profilefield_settings', '', get_string('pluginname_desc', 'enrol_profilefield')));
 
-
     //--- enrol instance defaults ----------------------------------------------------------------------------
 
 }

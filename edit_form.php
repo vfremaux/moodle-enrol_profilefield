@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -41,13 +40,13 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('header', 'header', get_string('pluginname', 'enrol_profilefield'));
 
         $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'));
+        $mform->setType('name', PARAM_CLEANHTML);
 
         $options = array(ENROL_INSTANCE_ENABLED  => get_string('yes'),
                          ENROL_INSTANCE_DISABLED => get_string('no'));
         $mform->addElement('select', 'status', get_string('status', 'enrol_profilefield'), $options);
         $mform->setDefault('status', $plugin->get_config('status'));
-        
-        
+
         $userfields = array(
         	'country' => get_string('country'),
         	'lang' => get_string('language'),
@@ -66,6 +65,7 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
 
         $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'), array('size' => 10));
+        $mform->setType('profilevalue', PARAM_TEXT);
 
         if ($instance->id) {
             $roles = get_default_enrol_roles($context, $instance->roleid);
@@ -78,6 +78,7 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('checkbox', 'notifymanagers', get_string('notifymanagers', 'enrol_profilefield'));
 
         $mform->addElement('textarea', 'notificationtext', get_string('notificationtext', 'enrol_profilefield'), array('cols' => 60, 'rows' => 10));
+        $mform->setType('notificationtext', PARAM_CLEANHTML);
         $mform->addHelpButton('notificationtext', 'notificationtext', 'enrol_profilefield');
 
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), array('optional' => true, 'defaultunit' => 86400));
@@ -93,7 +94,9 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_profilefield');
 
         $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
         $mform->addElement('hidden', 'courseid');
+        $mform->setType('courseid', PARAM_INT);
 
         $this->add_action_buttons(true, ($instance->id ? null : get_string('addinstance', 'enrol')));
 
