@@ -17,20 +17,20 @@
 /**
  * Version details.
  *
- * @package     enrol_profilefield
- * @category    enrol
- * @author      Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright   2012 Valery Fremaux <valery.fremaux@gmail.com>
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package    enrol_profilefield
+ * @category   enrol
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  2012 Valery Fremaux
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2014052200; // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2015050500; // Requires this Moodle version.
+$plugin->requires  = 2015111000; // Requires this Moodle version.
 $plugin->component = 'enrol_profilefield'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_RC;
-$plugin->release = '2.9.0 (Build 2014052200)';
+$plugin->release = '3.0.0 (Build 2014052200)';
 
 // Non moodle attributes.
-$plugin->codeincrement = '2.9.0000';
+$plugin->codeincrement = '3.0.0000';

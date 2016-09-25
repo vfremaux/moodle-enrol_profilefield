@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Profile field enrolment plugin.
  *
  * This plugin provides automatic enrol when a user enters the course with
  * a convenient profile value.
  *
- * @package    enrol
- * @subpackage profilefield
- * @version Moodle 2
+ * @package    enrol_profilefield
+ * @category   enrol
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright  2012 Valery Fremaux
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Database enrolment plugin implementation.
@@ -112,7 +112,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         $icons = array();
 
         if (has_capability('enrol/profilefield:config', $context)) {
-            $editlink = new moodle_url("/enrol/profilefield/edit.php", array('courseid' => $instance->courseid, 'id' => $instance->id));
+            $editlink = new moodle_url('/enrol/profilefield/edit.php', array('courseid' => $instance->courseid, 'id' => $instance->id));
             $icons[] = $OUTPUT->action_icon($editlink, new pix_icon('i/edit', get_string('edit'), 'core', array('class' => 'icon')));
         }
 
@@ -179,7 +179,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
             require_once($CFG->dirroot.'/enrol/profilefield/enrol_form.php');
             require_once($CFG->dirroot.'/group/lib.php');
 
-            $form = new enrol_profilefield_enrol_form(NULL, $instance);
+            $form = new enrol_profilefield_enrol_form(null, $instance);
             $instanceid = optional_param('instance', 0, PARAM_INT);
 
             if ($instance->id == $instanceid) {
@@ -193,8 +193,11 @@ class enrol_profilefield_plugin extends enrol_plugin {
                     }
 
                     $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $timeend);
-                    add_to_log($instance->courseid, 'course', 'enrol', '../enrol/users.php?id='.$instance->courseid, $instance->courseid); //there should be userid somewhere!
 
+                    // autocreate group if required
+                    $this->process_group($instance, $user);
+
+                    // in addition check also the password for autogrouping by the user.
                     if (!empty($data->enrolpassword)) {
                         // It must be a group enrolment, let's assign group too.
                         if ($groups = $DB->get_records('groups', array('courseid' => $instance->courseid), 'id', 'id, enrolmentkey')) {
@@ -232,14 +235,17 @@ class enrol_profilefield_plugin extends enrol_plugin {
     }
 
     /**
-     * checks all user profile conditions to get in
+     * checks all user profile conditions to get in.
+     * 
      */
-    function check_user_profile_conditions(stdClass $instance) {
+    function check_user_profile_conditions(stdClass $instance, $user = null) {
         global $USER, $DB;
+
+        if (is_null($user)) $user = $USER;
 
         $profilefield = $instance->customchar1;
         $profilevalue = $instance->customchar2;
-        
+
         if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)) {
             // Case of user custom fields.
 
@@ -247,20 +253,125 @@ class enrol_profilefield_plugin extends enrol_plugin {
                 return false;
             }
 
-            $uservalue = $DB->get_field('user_info_data', 'data', array('userid' => $USER->id, 'fieldid' => $pfield->id));
+            $uservalue = $DB->get_field('user_info_data', 'data', array('userid' => $user->id, 'fieldid' => $pfield->id));
             if ($uservalue == $profilevalue) {
                 return true;
             }
         } else {
             // We guess it is a standard user attribute.
-            if (isset($USER->$profilefield)) {
-                if ($profilevalue == $USER->$profilefield) {
+            if (isset($user->$profilefield)) {
+                if ($profilevalue == $user->$profilefield) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    /**
+     * This is important especially for external enrol plugins,
+     * this function is called for all enabled enrol plugins
+     * right after every user login.
+     *
+     * @param object $user user record
+     *
+     * @return void
+     */
+    public function sync_user_enrolments($user) {
+        global $DB;
+
+        // Get records of all the AutoEnrol instances which are set to enrol at login.
+        $instances = $DB->get_records('enrol', array('enrol' => 'profilefield', 'customint2' => 1), null, '*');
+
+        // Now get a record of all of the users enrolments.
+        $user_enrolments = $DB->get_records('user_enrolments', array('userid' => $user->id), null, '*');
+        // Run throuch all of the autoenrolment instances and check that the user has been enrolled.
+        foreach ($instances as $instance) {
+            $found = false;
+            foreach ($user_enrolments as $user_enrolment) {
+                if ($user_enrolment->enrolid == $instance->id) {
+                    $found = true;
+                }
+            }
+
+            if (defined('MOODLE_TEST')) {
+                echo json_encode($instance).'<br/>';
+                echo "Checking ".fullname($user).'<br/>';
+                echo "Allowed : ".$this->check_user_profile_conditions($instance, $user);
+            }
+
+            // Check if user passes the profile check.
+            if (!$found && $this->check_user_profile_conditions($instance, $user)) {
+                $this->enrol_user($instance, $user->id, $instance->roleid, time(), 0);
+                $this->process_group($instance, $user);
+
+                // Send notification to teachers.
+                if ($instance->customint1) {
+                    $this->notify_owners($instance, $user);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whall we process group and create one from the user's profile values ?
+     * @param stdClass $instance
+     */
+    private function process_group(stdClass $instance, $user) {
+        global $CFG, $DB;
+
+        if ($instance->customint3 != 0) {
+            require_once($CFG->dirroot . '/group/lib.php');
+
+            $types = array(1 => $user->auth, $user->department, $user->institution, $user->lang);
+
+            $name = $types[$instance->customint3];
+
+            if(!strlen($name)) {
+                $filtertype = array(get_string('g_none', 'enrol_autoenrol'),
+                    get_string('g_auth', 'enrol_profilefield'),
+                    get_string('g_dept', 'enrol_profilefield'),
+                    get_string('g_inst', 'enrol_profilefield'),
+                    get_string('g_lang', 'enrol_profilefield'));
+
+                $name =  get_string('emptyfield', 'enrol_profilefield', $filtertype[$instance->customint3]);
+            }
+
+            $group = $this->get_group($instance, $name);
+            return groups_add_member($group, $user->id);
+
+        }
+
+    }
+
+    /**
+     * @param stdClass $instance
+     * @param $name
+     * @param moodle_database $DB
+     * @return int|mixed id of the group
+     * @throws coding_exception
+     * @throws moodle_exception
+     */
+    private function get_group(stdClass $instance, $name) {
+        global $DB;
+
+        $idnumber = "profilefield|$instance->id|$name";
+
+        $group = $DB->get_record('groups', array('idnumber' => $idnumber, 'courseid' => $instance->courseid));
+
+        if ($group == null) {
+            $newgroupdata = new stdclass();
+            $newgroupdata->courseid = $instance->courseid;
+            $newgroupdata->name = $name;
+            $newgroupdata->idnumber = $idnumber;
+            $newgroupdata->description = get_string('auto_desc', 'enrol_profilefield');
+            $group = groups_create_group($newgroupdata);
+        } else {
+            $group = $group->id;
+        }
+
+        return $group;
     }
 
     function notify_owners(&$instance, &$appliant) {
@@ -283,7 +394,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         $context = context_course::instance($course->id);
 
-        if ($managers = get_users_by_capability($context, 'enrol/profilefield:manage', 'u.id, firstname, lastname, email, emailstop')) {
+        if ($managers = get_users_by_capability($context, 'enrol/profilefield:manage', 'u.id, '.get_all_user_name_fields(true, 'u').', emailstop')) {
 
             foreach ($managers as $m) {
                 $message = str_replace('<%%TEACHER%%>', fullname($m), $message);
