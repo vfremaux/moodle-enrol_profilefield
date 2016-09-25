@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Adds new instance of enrol_profilefield to specified course
  * or edits current instance.
@@ -27,11 +25,13 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir.'/formslib.php');
 
 class enrol_profilefield_edit_form extends moodleform {
 
-    function definition() {
+    public function definition() {
         global $DB;
 
         $mform = $this->_form;
@@ -54,7 +54,7 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addElement('select', 'status', get_string('status', 'enrol_profilefield'), $options);
         $mform->setDefault('status', 1);
 
-        // customint2
+        // Customint2.
         $options = array(1  => get_string('yes'),
                          0 => get_string('no'));
         $mform->addElement('select', 'auto', get_string('auto', 'enrol_profilefield'), $options);
@@ -76,10 +76,10 @@ class enrol_profilefield_edit_form extends moodleform {
             }
         }
 
-        // customchar1
+        // Customchar1.
         $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
 
-        // customchar2
+        // Customchar2.
         $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'), array('size' => 10));
         $mform->setType('profilevalue', PARAM_TEXT);
 
@@ -87,12 +87,13 @@ class enrol_profilefield_edit_form extends moodleform {
 
         $mform->addElement('checkbox', 'notifymanagers', get_string('notifymanagers', 'enrol_profilefield'));
 
-        // customtext1
-        $mform->addElement('textarea', 'notificationtext', get_string('notificationtext', 'enrol_profilefield'), array('cols' => 60, 'rows' => 10));
+        // Customtext1.
+        $params = array('cols' => 60, 'rows' => 10);
+        $mform->addElement('textarea', 'notificationtext', get_string('notificationtext', 'enrol_profilefield'), $params);
         $mform->setType('notificationtext', PARAM_CLEANHTML);
         $mform->addHelpButton('notificationtext', 'notificationtext', 'enrol_profilefield');
 
-        //customint3
+        // Customint3.
         $fields = array(get_string('g_none', 'enrol_profilefield'),
                 get_string('g_auth', 'enrol_profilefield'),
                 get_string('g_dept', 'enrol_profilefield'),
@@ -104,22 +105,24 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addHelpButton('autogroup', 'groupon', 'enrol_profilefield');
         $mform->setDefault('autogroup', 0);
 
-        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), array('optional' => true, 'defaultunit' => 86400));
+        $params = array('optional' => true, 'defaultunit' => 86400);
+        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), $params);
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_profilefield');
 
-        $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_profilefield'), array('optional' => true));
+        $params = array('optional' => true);
+        $mform->addElement('date_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_profilefield'), $params);
         $mform->setDefault('enrolstartdate', 0);
         $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_profilefield');
 
-        $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_profilefield'), array('optional' => true));
+        $params = array('optional' => true);
+        $mform->addElement('date_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_profilefield'), $params);
         $mform->setDefault('enrolenddate', 0);
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_profilefield');
 
         $this->add_action_buttons(true, (($mode == 'update') ? null : get_string('addinstance', 'enrol')));
     }
 
-    function validation($data, $files) {
-        global $DB, $CFG;
+    public function validation($data, $files) {
 
         $errors = parent::validation($data, $files);
 

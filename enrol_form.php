@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package    enrol_profilefield
  * @category   enrol
@@ -23,6 +21,8 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2010 Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
@@ -64,7 +64,8 @@ class enrol_profilefield_enrol_form extends moodleform {
         }
 
         // Change the id of self enrolment key input as there can be multiple self enrolment methods.
-        $mform->addElement('passwordunmask', 'enrolpassword', get_string('grouppassword', 'enrol_profilefield'), array('id' => $instance->id."_enrolpassword"));
+        $params = array('id' => $instance->id.'_enrolpassword');
+        $mform->addElement('passwordunmask', 'enrolpassword', get_string('grouppassword', 'enrol_profilefield'), $params);
 
         $this->add_action_buttons(false, get_string('enrolme', 'enrol_profilefield'));
 
@@ -78,7 +79,7 @@ class enrol_profilefield_enrol_form extends moodleform {
     }
 
     public function validation($data, $files) {
-        global $DB, $CFG;
+        global $DB;
 
         $errors = parent::validation($data, $files);
         $instance = $this->instance;

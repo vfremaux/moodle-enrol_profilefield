@@ -28,7 +28,7 @@ require('../../config.php');
 require_once('edit_form.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$instanceid = optional_param('id', 0, PARAM_INT); // instanceid
+$instanceid = optional_param('id', 0, PARAM_INT); // Enrol instance id.
 
 $course = $DB->get_record('course', array('id' => $courseid), '*');
 $context = context_course::instance($course->id);
@@ -61,11 +61,11 @@ if ($instanceid) {
     $instance = new stdClass();
     $instance->id = null;
     $instance->courseid = $course->id;
-    $instance->customchar1 = ''; // profile field
-    $instance->customchar2 = ''; // profile value
-    $instance->customint1 = 1; // notifies teachers of entry by default
-    $instance->customint2 = 0; // not automated
-    $instance->customint3 = 0; // without grouping
+    $instance->customchar1 = ''; // Profile field.
+    $instance->customchar2 = ''; // Profile value.
+    $instance->customint1 = 1; // Notifies teachers of entry by default.
+    $instance->customint2 = 0; // Not automated.
+    $instance->customint3 = 0; // Without grouping.
     $instance->customtext1 = format_text(get_string('defaultnotification', 'enrol_profilefield')); // notification for teachers
 
     $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
@@ -84,9 +84,9 @@ if ($mform->is_cancelled()) {
         $instance->status         = $data->status;
         $instance->name           = $data->name;
         $instance->roleid         = $data->roleid;
-        $instance->customint1     = 0 + @$data->notifymanagers; // checkbox
-        $instance->customint2     = 0 + @$data->auto; // checkbox
-        $instance->customint3     = 0 + @$data->autogroup; // select
+        $instance->customint1     = 0 + @$data->notifymanagers; // Checkbox.
+        $instance->customint2     = 0 + @$data->auto; // Checkbox.
+        $instance->customint3     = 0 + @$data->autogroup; // Select.
         $instance->customtext1    = $data->notificationtext;
         $instance->customchar1    = $data->profilefield;
         $instance->customchar2    = $data->profilevalue;
