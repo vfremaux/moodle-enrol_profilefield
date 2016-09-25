@@ -15,19 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Database enrolment plugin version specification.
+ * Version details.
  *
- * @package    enrol
- * @subpackage profilefield
- * @version Moodle 2
- * @copyright  2012 Valery Fremaux (valery.fremaux@gmail.com)
+ * @package    enrol_profilefield
+ * @category   enrol
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  2012 Valery Fremaux
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2014052200; // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2013040500; // Requires this Moodle version.
+$plugin->requires  = 2014050800; // Requires this Moodle version.
 $plugin->component = 'enrol_profilefield'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_RC;
-$plugin->release = '2.5.0 (Build 2014052200)';
+$plugin->release = '2.7.0 (Build 2014052200)';
+
+// Non moodle attributes.
+$plugin->codeincrement = '2.7.0000';
