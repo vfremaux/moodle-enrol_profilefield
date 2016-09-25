@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Capabilities for manual enrolment plugin.
  *
- * @package    enrol_profilefield
- * @category   enrol
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2012 Valery Fremaux
+ * @package    enrol_manual
+ * @copyright  2010 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
 

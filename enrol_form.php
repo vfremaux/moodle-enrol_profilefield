@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
-/**
- * @package    enrol_profilefield
- * @category   enrol
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2010 Valery Fremaux (valery.fremaux@gmail.com)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 require_once($CFG->libdir.'/formslib.php');
 
 class enrol_profilefield_enrol_form extends moodleform {

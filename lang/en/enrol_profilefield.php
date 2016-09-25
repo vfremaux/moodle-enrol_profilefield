@@ -9,12 +9,9 @@ $string['profilefield:unenrol'] = 'Can unenrol from a field enrolment assignatio
 $string['profilefield:unenrolself'] = 'Can unenrol self from a field enrolment assignation';
 
 $string['assignrole'] = 'Assign role';
-$string['auto_desc'] = 'This group has been automatically created by the ProfileField Enrol plugin. It will be deleted if you remove the ProfileField Enrol plugin from the course.';
 $string['badprofile'] = 'You may be disapointed, but your profile information forbids you enrolling in this course. However, if you have a good reason to be here, please contact an administrator who will alter your profile consequently.';
 $string['course'] = 'Course : $a';
 $string['enrol/profilefield:unenrolself'] = 'Can unenrol self from course';
-$string['auto'] = 'Automatic';
-$string['auto_help'] = 'If enabled, the user will be enroled in course when loging in without necessarily having to visit the course.';
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can be enrolled until this date only.';
 $string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';
@@ -26,14 +23,6 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrolment is vali
 $string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user is enrolled. If disabled, the enrolment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
-$string['emptyfield'] = 'No {$a}';
-$string['groupon'] = 'Group By';
-$string['g_none'] = 'No grouping, or choose...';
-$string['g_auth'] = 'Auth Method';
-$string['g_dept'] = 'Department';
-$string['g_inst'] = 'Institution';
-$string['g_lang'] = 'Language';
-$string['groupon_help'] = 'This enrol plugin can automatically add users to a group when they are enrolled based upon one of these user fields.';
 $string['grouppassword'] = 'Password to enter a group, if it is known.';
 $string['newcourseenrol'] = 'A new participant has enrolled in course {$a}';
 $string['nonexistantprofilefielderror'] = 'This field is not defined in user profile extensions';
@@ -58,3 +47,5 @@ the new user <%%USERNAME%%> has enrolled himself (profile agreed) in your course
 
 You can check his profile <a href="<%%URL%%>">here</a> after loggin in.
 ';
+
+?>

@@ -17,10 +17,9 @@
 /**
  * Manual enrolment plugin - support for user self unenrolment.
  *
- * @package    enrol_profilefield
- * @category   enrol
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2012 Valery Fremaux
+ * @package    enrol
+ * @subpackage manual
+ * @copyright  2010 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -32,8 +31,6 @@ $confirm = optional_param('confirm', 0, PARAM_BOOL);
 $instance = $DB->get_record('enrol', array('id' => $enrolid, 'enrol' => 'profilefield'), '*');
 $course = $DB->get_record('course', array('id'=>$instance->courseid), '*');
 $context = context_course::instance($course->id);
-
-// Security.
 
 require_login();
 if (!is_enrolled($context)) {
@@ -54,6 +51,7 @@ $PAGE->set_title($plugin->get_instance_name($instance));
 
 if ($confirm and confirm_sesskey()) {
     $plugin->unenrol_user($instance, $USER->id);
+    add_to_log($course->id, 'course', 'unenrol', $CFG->wwwroot.'/enrol/users.php?id='.$course->id, $course->id); //there should be userid somewhere!
     redirect(new moodle_url('/index.php'));
 }
 

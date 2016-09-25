@@ -33,8 +33,6 @@ $instanceid = optional_param('id', 0, PARAM_INT); // instanceid
 $course = $DB->get_record('course', array('id' => $courseid), '*');
 $context = context_course::instance($course->id);
 
-// Security.
-
 require_login($course);
 require_capability('enrol/profilefield:config', $context);
 
@@ -50,34 +48,26 @@ if (!enrol_is_enabled('profilefield')) {
 $plugin = enrol_get_plugin('profilefield');
 
 if ($instanceid) {
-    $instance = $DB->get_record('enrol', array('id' => $instanceid), '*');
-    $roles = get_default_enrol_roles($context, $instance->roleid);
-    $mode = 'update';
+    $instance = $DB->get_record('enrol', array('courseid' => $course->id, 'enrol' => 'profilefield', 'id' => $instanceid), '*');
 } else {
     require_capability('moodle/course:enrolconfig', $context);
 
     // No instance yet, we have to add new instance.
     navigation_node::override_active_url(new moodle_url('/enrol/instances.php', array('id' => $course->id)));
     $instance = new stdClass();
-    $instance->id = null;
+    $instance->id       = null;
     $instance->courseid = $course->id;
     $instance->customchar1 = ''; // profile field
     $instance->customchar2 = ''; // profile value
     $instance->customint1 = 1; // notifies teachers of entry by default
-    $instance->customint2 = 0; // not automated
-    $instance->customint3 = 0; // without grouping
     $instance->customtext1 = format_text(get_string('defaultnotification', 'enrol_profilefield')); // notification for teachers
-
-    $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
-    $mode = 'add';
 }
 
-$mform = new enrol_profilefield_edit_form(null, array($roles, $mode));
+$mform = new enrol_profilefield_edit_form(null, array($instance, $plugin, $context));
 
 if ($mform->is_cancelled()) {
     redirect($return);
 } else if ($data = $mform->get_data()) {
-
     if ($instance->id) {
         $reset = ($instance->status != $data->status);
 
@@ -85,8 +75,6 @@ if ($mform->is_cancelled()) {
         $instance->name           = $data->name;
         $instance->roleid         = $data->roleid;
         $instance->customint1     = 0 + @$data->notifymanagers; // checkbox
-        $instance->customint2     = 0 + @$data->auto; // checkbox
-        $instance->customint3     = 0 + @$data->autogroup; // select
         $instance->customtext1    = $data->notificationtext;
         $instance->customchar1    = $data->profilefield;
         $instance->customchar2    = $data->profilevalue;
@@ -94,7 +82,6 @@ if ($mform->is_cancelled()) {
         $instance->enrolstartdate = $data->enrolstartdate;
         $instance->enrolenddate   = $data->enrolenddate;
         $instance->timemodified   = time();
-
         $DB->update_record('enrol', $instance);
 
         if ($reset) {
@@ -102,17 +89,13 @@ if ($mform->is_cancelled()) {
         }
 
     } else {
-        $fields = array('status' => $data->status,
-                        'name' => $data->name,
-                        'customint1' => $data->notifymanagers,
-                        'customint2' => $data->auto,
-                        'customint3' => $data->autogroup,
-                        'customtext1' => $data->notificationtext,
-                        'customchar1' => $data->profilefield,
-                        'customchar2' => $data->profilevalue,
+        $fields = array('status' => $data->status, 
+                        'name' => $data->name, 
+                        'profilefield' => $data->profilefield, 
+                        'profilevalue' => $data->profilevalue, 
                         'roleid' => $data->roleid,
-                        'enrolperiod' => $data->enrolperiod,
-                        'enrolstartdate' => $data->enrolstartdate,
+                        'enrolperiod' => $data->enrolperiod, 
+                        'enrolstartdate' => $data->enrolstartdate, 
                         'enrolenddate' => $data->enrolenddate
         );
         $plugin->add_instance($course, $fields);
@@ -125,37 +108,6 @@ $PAGE->set_heading($course->fullname);
 $PAGE->set_title(get_string('pluginname', 'enrol_profilefield'));
 
 echo $OUTPUT->header();
-if ($instanceid) {
-    $formdata = new StdClass();
-    $formdata->id = $instance->id;
-    $formdata->courseid = $courseid;
-    $formdata->auto = $instance->customint2;
-    $formdata->autogroup = $instance->customint3;
-    $formdata->profilefield = $instance->customchar1;
-    $formdata->profilevalue = $instance->customchar2;
-    $formdata->notifymanagers = $instance->customint1;
-    $formdata->name = $instance->name;
-    $formdata->status = $instance->status;
-    $formdata->roleid = $instance->roleid;
-    $formdata->enrolperiod = $instance->enrolperiod;
-    $formdata->enrolstartdate = $instance->enrolstartdate;
-    $formdata->enrolenddate = $instance->enrolenddate;
-    if (empty($instance->customtext1)) {
-        $formdata->customtext1 = get_string('defaultnotification', 'enrol_profilefield');
-    }
-    $formdata->notificationtext = $instance->customtext1;
-
-    $mform->set_data($formdata);
-} else {
-    $formdata = new StdClass();
-    $formdata->id = $instance->id;
-    $formdata->courseid = $courseid;
-    $formdata->roleid = $DB->get_field('role', 'id', array('shortname' => 'student'));
-    $formdata->status = 1;
-    $formdata->name = get_string('pluginname', 'enrol_profilefield');
-    $mform->set_data($formdata);
-}
-
 echo $OUTPUT->heading(get_string('pluginname', 'enrol_profilefield'));
 $mform->display();
 echo $OUTPUT->footer();
