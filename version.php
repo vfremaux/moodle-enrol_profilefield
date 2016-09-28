@@ -20,7 +20,7 @@
  * @package    enrol_profilefield
  * @category   enrol
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2012 Valery Fremaux
+ * @copyright  2012 Valery Fremaux (http://www.mylearningfactory.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
