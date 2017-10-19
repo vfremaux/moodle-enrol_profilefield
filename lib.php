@@ -54,6 +54,21 @@ class enrol_profilefield_plugin extends enrol_plugin {
         return array(new pix_icon('icon', get_string('pluginname', 'enrol_profilefield'), 'enrol_profilefield'));
     }
 
+    public function can_hide_show_instance($instance) {
+        return true;
+    }
+
+    /**
+     * Is it possible to delete enrol instance via standard UI?
+     *
+     * @param object $instance
+     * @return bool
+     */
+    public function can_delete_instance($instance) {
+        $context = context_course::instance($instance->courseid);
+        return has_capability('enrol/profilefield:config', $context);
+    }
+
     /**
      * Returns link to page which may be used to add new instance of enrolment plugin in course.
      * @param int $courseid
@@ -109,7 +124,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         if (has_capability('enrol/profilefield:config', $context)) {
             $params = array('courseid' => $instance->courseid, 'id' => $instance->id);
             $editlink = new moodle_url('/enrol/profilefield/edit.php', $params);
-            $icon = new pix_icon('i/edit', get_string('edit'), 'core', array('class' => 'icon'));
+            $icon = new pix_icon('t/edit', get_string('edit'), 'core', array('class' => 'iconsmall'));
             $icons[] = $OUTPUT->action_icon($editlink, $icon);
         }
 
