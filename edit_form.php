@@ -105,6 +105,15 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->addHelpButton('autogroup', 'groupon', 'enrol_profilefield');
         $mform->setDefault('autogroup', 0);
 
+        // Customint 4
+        $mform->addElement('checkbox', 'overridegrouppassword', get_string('overridegrouppassword', 'enrol_profilefield'));
+        $mform->addHelpButton('overridegrouppassword', 'overridegrouppassword', 'enrol_profilefield');
+        $mform->DisabledIf('overridegrouppassword', 'autogroup', 'eq', 0);
+
+        // Customint 5
+        $mform->addElement('text', 'maxenrolled', get_string('maxenrolled', 'enrol_profilefield'), array('size' => 4));
+        $mform->setType('maxenrolled', PARAM_INT);
+
         $params = array('optional' => true, 'defaultunit' => 86400);
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), $params);
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_profilefield');

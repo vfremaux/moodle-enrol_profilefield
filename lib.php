@@ -54,21 +54,6 @@ class enrol_profilefield_plugin extends enrol_plugin {
         return array(new pix_icon('icon', get_string('pluginname', 'enrol_profilefield'), 'enrol_profilefield'));
     }
 
-    public function can_hide_show_instance($instance) {
-        return true;
-    }
-
-    /**
-     * Is it possible to delete enrol instance via standard UI?
-     *
-     * @param object $instance
-     * @return bool
-     */
-    public function can_delete_instance($instance) {
-        $context = context_course::instance($instance->courseid);
-        return has_capability('enrol/profilefield:config', $context);
-    }
-
     /**
      * Returns link to page which may be used to add new instance of enrolment plugin in course.
      * @param int $courseid
@@ -101,7 +86,8 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         $context = context_course::instance($instance->courseid);
         if (has_capability('enrol/profilefield:config', $context)) {
-            $managelink = new moodle_url('/enrol/profilefield/edit.php', array('courseid' => $instance->courseid));
+            $params = array('id' => $instance->id, 'courseid' => $instance->courseid, 'type' => $instance->enrol);
+            $managelink = new moodle_url('/enrol/profilefield/edit.php', $params);
             $instancesnode->add($this->get_instance_name($instance), $managelink, navigation_node::TYPE_SETTING);
         }
     }
@@ -124,7 +110,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
         if (has_capability('enrol/profilefield:config', $context)) {
             $params = array('courseid' => $instance->courseid, 'id' => $instance->id);
             $editlink = new moodle_url('/enrol/profilefield/edit.php', $params);
-            $icon = new pix_icon('t/edit', get_string('edit'), 'core', array('class' => 'iconsmall'));
+            $icon = new pix_icon('i/edit', get_string('edit'), 'core', array('class' => 'icon'));
             $icons[] = $OUTPUT->action_icon($editlink, $icon);
         }
 
@@ -214,7 +200,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
                 $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $timeend);
 
                 // Autocreate group if required.
-                $this->process_group($instance, $user);
+                $this->process_group($instance, $USER);
 
                 // In addition check also the password for autogrouping by the user.
                 if (!empty($data->enrolpassword)) {
@@ -415,6 +401,140 @@ class enrol_profilefield_plugin extends enrol_plugin {
             foreach ($managers as $m) {
                 $message = str_replace('<%%TEACHER%%>', fullname($m), $message);
                 email_to_user($m, $appliant, $subject, $message);
+            }
+        }
+    }
+
+    /**
+     * Is it possible to hide/show enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_hide_show_instance($instance) {
+        $context = \context_course::instance($instance->courseid);
+        return has_capability('enrol/profilefield:manage', $context);
+    }
+
+    /**
+     * Provides a mapping of script attributes to internal
+     * storage attributes
+     * @return 
+     */
+    public function script_attributes($map = true) {
+        $scriptmap = array(
+            'name' => 'name',
+            'status' => 'status',
+            'role' => 'roleid',
+            'period' => 'period',
+            'start' => 'enrolstartdate',
+            'end' => 'enrolenddate',
+            'profilefield' => 'customchar1',
+            'profilevalue' => 'customchar2',
+            'notifymanagers' => 'customint1',
+            'auto' => 'customint2',
+            'autogroup' => 'customint3',
+            'overridegrouppassword' => 'customint4',
+            'maxenrolled' => 'customint5',
+            'notificationtext' => 'customtext1',
+        );
+
+        $scriptdesc = array(
+            'name' => array(
+                'output' => 'name',
+                'required' => 0,
+             ),
+            'status' => array(
+                'output' => 'status',
+                'required' => 0,
+                'default' => 0
+             ),
+            'role' => array(
+                'output' => 'roleid',
+                'required' => 0,
+                'default' => 'hardcoded'
+             ),
+            'period' => array(
+                'output' => 'period',
+                'required' => 0,
+                'default' => 0
+            ),
+            'start' => array(
+                'output' => 'enrolstartdate',
+                'required' => 0,
+            ),
+            'end' => array(
+                'output' => 'enrolenddate',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'profilefield' => array(
+                'output' => 'customchar1',
+                'required' => 1,
+            ),
+            'profilevalue' => array(
+                'output' => 'customchar2',
+                'required' => 1
+            ),
+            'notifymanagers' => array(
+                'output' => 'customint1',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'auto' => array(
+                'output' => 'customint2',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'autogroup' => array(
+                'output' => 'customint3',
+                'required' => 0,
+                'default '=> 0,
+            ),
+            'overridegrouppassword' => array(
+                'output' => 'customint4',
+                'required' => 0,
+                'default' => 1,
+            ),
+            'maxenrolled' => array(
+                'output' => 'customint5',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'notificationtext' => array(
+                'output' => 'customtext1',
+                'required' => 0,
+                'default' => '',
+            ),
+        );
+
+        if ($map) {
+            return $scriptmap;
+        } else {
+            return $scriptdesc;
+        }
+    }
+
+    /**
+     * Checks incoming attributes and give report
+     * @return 
+     */
+    public function script_check(&$context, &$handler) {
+        global $USER, $DB;
+
+        $fieldname = trim($context->params->profilefield);
+        if (preg_match('/^profile_field_/', $fieldname)) {
+            $fieldname = str_replace('profile_field_', '', $fieldname);
+            if (!$DB->get_record('user_info_field', array('shortname' => $fieldname))) {
+                $handler->error('Unkown user attribute '.$fieldname);
+            }
+        } else {
+            /*
+             * this is just a control of existance in the standard profile.
+             * Real $USER data is not engaged.
+             */
+            if (!isset($USER->$fieldname)) {
+                $handler->error('Unkown user attribute '.$fieldname);
             }
         }
     }

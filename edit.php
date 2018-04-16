@@ -66,6 +66,8 @@ if ($instanceid) {
     $instance->customint1 = 1; // Notifies teachers of entry by default.
     $instance->customint2 = 0; // Not automated.
     $instance->customint3 = 0; // Without grouping.
+    $instance->customint4 = 0; // Override passwords.
+    $instance->customint5 = 0; // Max enrolled amount.
     $instance->customtext1 = format_text(get_string('defaultnotification', 'enrol_profilefield')); // Notification for teachers.
 
     $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
@@ -87,6 +89,8 @@ if ($mform->is_cancelled()) {
         $instance->customint1     = 0 + @$data->notifymanagers; // Checkbox.
         $instance->customint2     = 0 + @$data->auto; // Checkbox.
         $instance->customint3     = 0 + @$data->autogroup; // Select.
+        $instance->customint4     = 0 + @$data->overridegrouppassword; // Checkbox.
+        $instance->customint5     = 0 + @$data->maxenrolled; // Text.
         $instance->customtext1    = $data->notificationtext;
         $instance->customchar1    = $data->profilefield;
         $instance->customchar2    = $data->profilevalue;
@@ -107,6 +111,8 @@ if ($mform->is_cancelled()) {
                         'customint1' => $data->notifymanagers,
                         'customint2' => $data->auto,
                         'customint3' => $data->autogroup,
+                        'customint4' => $data->overridegrouppassword,
+                        'customint5' => $data->maxenrolled,
                         'customtext1' => $data->notificationtext,
                         'customchar1' => $data->profilefield,
                         'customchar2' => $data->profilevalue,
@@ -134,6 +140,8 @@ if ($instanceid) {
     $formdata->profilefield = $instance->customchar1;
     $formdata->profilevalue = $instance->customchar2;
     $formdata->notifymanagers = $instance->customint1;
+    $formdata->overridegrouppassword = $instance->customint4;
+    $formdata->maxenrolled = $instance->customint5;
     $formdata->name = $instance->name;
     $formdata->status = $instance->status;
     $formdata->roleid = $instance->roleid;
