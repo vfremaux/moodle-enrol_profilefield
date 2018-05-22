@@ -174,29 +174,17 @@ class enrol_profilefield_plugin extends enrol_plugin {
         }
 
         if ($DB->record_exists('user_enrolments', array('userid' => $USER->id, 'enrolid' => $instance->id))) {
-<<<<<<< HEAD
-            // TODO: maybe we should tell them they are already enrolled, but can not access the course
-=======
             // TODO: maybe we should tell them they are already enrolled, but can not access the course.
->>>>>>> MOODLE_32_STABLE
             return null;
         }
 
         if ($instance->enrolstartdate != 0 and $instance->enrolstartdate > time()) {
-<<<<<<< HEAD
-            // TODO: inform that we can not enrol yet
-=======
             // TODO: inform that we can not enrol yet.
->>>>>>> MOODLE_32_STABLE
             return null;
         }
 
         if ($instance->enrolenddate != 0 and $instance->enrolenddate < time()) {
-<<<<<<< HEAD
-            // TODO: inform that enrolment is not possible any more
-=======
             // TODO: inform that enrolment is not possible any more.
->>>>>>> MOODLE_32_STABLE
             return null;
         }
 
@@ -442,10 +430,6 @@ function enrol_profilefield_supports($feature) {
     switch ($feature) {
         case ENROL_RESTORE_TYPE:
             return ENROL_RESTORE_EXACT;
-<<<<<<< HEAD
-        }
-=======
->>>>>>> MOODLE_32_STABLE
 
         default:
             return null;
