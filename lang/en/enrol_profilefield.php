@@ -24,6 +24,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// Privacy.
+$string['privacy:metadata'] = "The Profile Field Enrol do not store any data belonging to users";
+
 // Capabilities.
 $string['profilefield:config'] = 'Can configure profile field enrolment';
 $string['profilefield:enrol'] = 'Can enrol through profile field enrolment';
