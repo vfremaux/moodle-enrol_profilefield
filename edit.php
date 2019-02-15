@@ -62,10 +62,12 @@ if ($instanceid) {
     $instance->id = null;
     $instance->courseid = $course->id;
     $instance->customchar1 = ''; // Profile field.
-    $instance->customchar2 = ''; // Profile value.
+    $instance->customtext2 = ''; // Profile value.
     $instance->customint1 = 1; // Notifies teachers of entry by default.
     $instance->customint2 = 0; // Not automated.
     $instance->customint3 = 0; // Without grouping.
+    $instance->customint4 = 0; // Override passwords.
+    $instance->customint5 = 0; // Max enrolled amount.
     $instance->customtext1 = format_text(get_string('defaultnotification', 'enrol_profilefield')); // Notification for teachers.
 
     $roles = get_default_enrol_roles($context, $plugin->get_config('roleid'));
@@ -87,9 +89,11 @@ if ($mform->is_cancelled()) {
         $instance->customint1     = 0 + @$data->notifymanagers; // Checkbox.
         $instance->customint2     = 0 + @$data->auto; // Checkbox.
         $instance->customint3     = 0 + @$data->autogroup; // Select.
+        $instance->customint4     = 0 + @$data->overridegrouppassword; // Checkbox.
+        $instance->customint5     = 0 + @$data->maxenrolled; // Text.
         $instance->customtext1    = $data->notificationtext;
         $instance->customchar1    = $data->profilefield;
-        $instance->customchar2    = $data->profilevalue;
+        $instance->customtext2    = $data->profilevalue;
         $instance->enrolperiod    = $data->enrolperiod;
         $instance->enrolstartdate = $data->enrolstartdate;
         $instance->enrolenddate   = $data->enrolenddate;
@@ -104,12 +108,14 @@ if ($mform->is_cancelled()) {
     } else {
         $fields = array('status' => $data->status,
                         'name' => $data->name,
-                        'customint1' => $data->notifymanagers,
+                        'customint1' => @$data->notifymanagers,
                         'customint2' => $data->auto,
                         'customint3' => $data->autogroup,
+                        'customint4' => @$data->overridegrouppassword,
+                        'customint5' => $data->maxenrolled,
                         'customtext1' => $data->notificationtext,
                         'customchar1' => $data->profilefield,
-                        'customchar2' => $data->profilevalue,
+                        'customtext2' => $data->profilevalue,
                         'roleid' => $data->roleid,
                         'enrolperiod' => $data->enrolperiod,
                         'enrolstartdate' => $data->enrolstartdate,
@@ -132,8 +138,10 @@ if ($instanceid) {
     $formdata->auto = $instance->customint2;
     $formdata->autogroup = $instance->customint3;
     $formdata->profilefield = $instance->customchar1;
-    $formdata->profilevalue = $instance->customchar2;
+    $formdata->profilevalue = $instance->customtext2;
     $formdata->notifymanagers = $instance->customint1;
+    $formdata->overridegrouppassword = $instance->customint4;
+    $formdata->maxenrolled = $instance->customint5;
     $formdata->name = $instance->name;
     $formdata->status = $instance->status;
     $formdata->roleid = $instance->roleid;
