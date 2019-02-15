@@ -29,6 +29,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+define('SINGLE_FIELD', 0);
+define('MULTIPLE_FIELDS', 1);
+
 class enrol_profilefield_plugin extends enrol_plugin {
 
     public function allow_enrol(stdClass $instance) {
@@ -52,10 +55,6 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
     public function get_info_icons(array $instances) {
         return array(new pix_icon('icon', get_string('pluginname', 'enrol_profilefield'), 'enrol_profilefield'));
-    }
-
-    public function can_hide_show_instance($instance) {
-        return true;
     }
 
     /**
@@ -101,7 +100,8 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         $context = context_course::instance($instance->courseid);
         if (has_capability('enrol/profilefield:config', $context)) {
-            $managelink = new moodle_url('/enrol/profilefield/edit.php', array('courseid' => $instance->courseid));
+            $params = array('id' => $instance->id, 'courseid' => $instance->courseid, 'type' => $instance->enrol);
+            $managelink = new moodle_url('/enrol/profilefield/edit.php', $params);
             $instancesnode->add($this->get_instance_name($instance), $managelink, navigation_node::TYPE_SETTING);
         }
     }
@@ -214,7 +214,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
                 $this->enrol_user($instance, $USER->id, $instance->roleid, $timestart, $timeend);
 
                 // Autocreate group if required.
-                $this->process_group($instance, $user);
+                $this->process_group($instance, $USER);
 
                 // In addition check also the password for autogrouping by the user.
                 if (!empty($data->enrolpassword)) {
@@ -253,33 +253,108 @@ class enrol_profilefield_plugin extends enrol_plugin {
      * @param object $user
      */
     public function check_user_profile_conditions(stdClass $instance, $user = null) {
-        global $USER, $DB;
+        global $USER, $DB, $OUTPUT, $CFG;
+
+        $config = get_config('enrol_profilefield');
 
         if (is_null($user)) {
             $user = $USER;
         }
 
-        $profilefield = $instance->customchar1;
-        $profilevalue = $instance->customchar2;
+        if ($config->multiplefields == SINGLE_FIELD) {
+            $profilefield = $instance->customchar1;
+            $profilevalue = $instance->customtext2;
 
-        if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)) {
-            // Case of user custom fields.
+            if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)) {
+                // Case of user custom fields.
 
-            if (!$pfield = $DB->get_record('user_info_field', array('shortname' => $matches[1]))) {
+                if (!$pfield = $DB->get_record('user_info_field', array('shortname' => $matches[1]))) {
+                    return false;
+                }
+
+                $params = array('userid' => $user->id, 'fieldid' => $pfield->id);
+                $uservalue = $DB->get_field('user_info_data', 'data', $params);
+                if ($uservalue == $profilevalue) {
+                    return true;
+                }
+            } else {
+                // We guess it is a standard user attribute.
+                if (isset($user->$profilefield)) {
+                    if ($profilevalue == $user->$profilefield) {
+                        return true;
+                    }
+                }
+            }
+        } else {
+            // customchar1 holds fieldnames and operators expressions
+            // customtext2 holds fieldexpected values, in order
+
+            if (empty($instance->customchar1)) {
                 return false;
             }
 
-            $uservalue = $DB->get_field('user_info_data', 'data', array('userid' => $user->id, 'fieldid' => $pfield->id));
-            if ($uservalue == $profilevalue) {
-                return true;
-            }
-        } else {
-            // We guess it is a standard user attribute.
-            if (isset($user->$profilefield)) {
-                if ($profilevalue == $user->$profilefield) {
-                    return true;
+            // We start with a rough setup.
+            $parts = explode(' ', $instance->customchar1);
+            $profilevalues = explode(',', $instance->customtext2);
+
+            // We expect : profile_fields or user attribute names miwed with AND or OR operator.
+            $expectsfieldname = true;
+            $datas = array();
+            $operators = array();
+            $fields = array();
+            foreach ($parts as $part) {
+                if ($expectsfieldname) {
+                    if (preg_match('/^profile_field_/', trim($part))) {
+                        $shortname = str_replace('profile_field_', '', $part);
+                        $pfield = $DB->get_record('user_info_field', array('shortname' => $shortname));
+                        $fields[] = $part;
+                        $params = array('userid' => $user->id, 'fieldid' => $pfield->id);
+                        $datas[] = $DB->get_field('user_info_data', 'data', $params);
+                    } else {
+                        $attribute = $part;
+                        $fields[] = $part;
+                        $datas[] = $user->$attribute;
+                    }
+                    $expectsfieldname = false;
+                } else {
+                    if (!in_array($part, array('AND', 'OR'))) {
+                        throw new moodle_exception('Operator expected must be AND or OR');
+                    }
+                    if ($part == 'AND') {
+                        $operators[] = '&&';
+                    } else {
+                        $operators[] = '||';
+                    }
+                    $expectsfieldname = true;
                 }
             }
+
+            if (count($profilevalues) != count($fields)) {
+                echo $OUTPUT->notification('Fields and expected values count do not match', 'error');
+            }
+
+            $expression = '$result = ';
+            foreach ($fields as $field) {
+                $data = trim(array_shift($datas));
+                $data = str_replace('"', '&quot;', $data);
+                $expression .= " \"{$data}\" ";
+                $value = trim(array_shift($profilevalues));
+                $value = str_replace('"', '&quot;', $value);
+                $expression .= " == \"{$value}\" ";
+                $operator = array_shift($operators);
+                if ($operator) {
+                    $expression .= " {$operator} ";
+                }
+            }
+
+            if (($CFG->debug == DEBUG_DEVELOPER) && function_exists('debug_trace')) {
+                debug_trace("Enroling by profie user {$user->id} ");
+                debug_trace($expression);
+            }
+
+            eval($expression. ";");
+            return $result;
+
         }
 
         return false;
@@ -297,12 +372,14 @@ class enrol_profilefield_plugin extends enrol_plugin {
     public function sync_user_enrolments($user) {
         global $DB;
 
-        // Get records of all the AutoEnrol instances which are set to enrol at login.
-        $instances = $DB->get_records('enrol', array('enrol' => 'profilefield', 'customint2' => 1), null, '*');
+        // Get records of all the active AutoEnrol instances which are set to enrol at login.
+        $params = array('enrol' => 'profilefield', 'status' => 0, 'customint2' => 1);
+        $instances = $DB->get_records('enrol', $params, null, '*');
 
         // Now get a record of all of the users enrolments.
         $userenrolments = $DB->get_records('user_enrolments', array('userid' => $user->id), null, '*');
-        // Run throuch all of the autoenrolment instances and check that the user has been enrolled.
+
+        // Run through all of the autoenrolment instances and check that the user has been enrolled.
         foreach ($instances as $instance) {
             $found = false;
             foreach ($userenrolments as $userenrol) {
@@ -373,20 +450,28 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         $idnumber = "profilefield|$instance->id|$name";
 
-        $group = $DB->get_record('groups', array('idnumber' => $idnumber, 'courseid' => $instance->courseid));
-
-        if ($group == null) {
-            $newgroupdata = new stdclass();
-            $newgroupdata->courseid = $instance->courseid;
-            $newgroupdata->name = $name;
-            $newgroupdata->idnumber = $idnumber;
-            $newgroupdata->description = get_string('auto_desc', 'enrol_profilefield');
-            $group = groups_create_group($newgroupdata);
-        } else {
-            $group = $group->id;
+        $autogrouping = $DB->get_record('groupings', array('name' => '_auto_', 'courseid' => $instance->courseid));
+        if (!$autogrouping) {
+            $autogrouping = new stdclass();
+            $autogrouping->courseid = $instance->courseid;
+            $autogrouping->name = '_auto_';
+            $autogrouping->id = groups_create_grouping($autogrouping);
         }
 
-        return $group;
+        $group = $DB->get_record('groups', array('idnumber' => $idnumber, 'courseid' => $instance->courseid));
+
+        if (!$group) {
+            $group = new stdclass();
+            $group->courseid = $instance->courseid;
+            $group->name = $name;
+            $group->idnumber = $idnumber;
+            $group->description = get_string('auto_desc', 'enrol_profilefield');
+            $group->id = groups_create_group($group);
+
+            groups_assign_grouping($autogrouping->id, $group->id);
+        }
+
+        return $group->id;
     }
 
     public function notify_owners(&$instance, &$appliant) {
@@ -415,6 +500,140 @@ class enrol_profilefield_plugin extends enrol_plugin {
             foreach ($managers as $m) {
                 $message = str_replace('<%%TEACHER%%>', fullname($m), $message);
                 email_to_user($m, $appliant, $subject, $message);
+            }
+        }
+    }
+
+    /**
+     * Is it possible to hide/show enrol instance via standard UI?
+     *
+     * @param stdClass $instance
+     * @return bool
+     */
+    public function can_hide_show_instance($instance) {
+        $context = \context_course::instance($instance->courseid);
+        return has_capability('enrol/profilefield:manage', $context);
+    }
+
+    /**
+     * Provides a mapping of script attributes to internal
+     * storage attributes
+     * @return 
+     */
+    public function script_attributes($map = true) {
+        $scriptmap = array(
+            'name' => 'name',
+            'status' => 'status',
+            'role' => 'roleid',
+            'period' => 'period',
+            'start' => 'enrolstartdate',
+            'end' => 'enrolenddate',
+            'profilefield' => 'customchar1',
+            'profilevalue' => 'customtext2',
+            'notifymanagers' => 'customint1',
+            'auto' => 'customint2',
+            'autogroup' => 'customint3',
+            'overridegrouppassword' => 'customint4',
+            'maxenrolled' => 'customint5',
+            'notificationtext' => 'customtext1',
+        );
+
+        $scriptdesc = array(
+            'name' => array(
+                'output' => 'name',
+                'required' => 0,
+             ),
+            'status' => array(
+                'output' => 'status',
+                'required' => 0,
+                'default' => 0
+             ),
+            'role' => array(
+                'output' => 'roleid',
+                'required' => 0,
+                'default' => 'hardcoded'
+             ),
+            'period' => array(
+                'output' => 'period',
+                'required' => 0,
+                'default' => 0
+            ),
+            'start' => array(
+                'output' => 'enrolstartdate',
+                'required' => 0,
+            ),
+            'end' => array(
+                'output' => 'enrolenddate',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'profilefield' => array(
+                'output' => 'customchar1',
+                'required' => 1,
+            ),
+            'profilevalue' => array(
+                'output' => 'customtext2',
+                'required' => 1
+            ),
+            'notifymanagers' => array(
+                'output' => 'customint1',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'auto' => array(
+                'output' => 'customint2',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'autogroup' => array(
+                'output' => 'customint3',
+                'required' => 0,
+                'default '=> 0,
+            ),
+            'overridegrouppassword' => array(
+                'output' => 'customint4',
+                'required' => 0,
+                'default' => 1,
+            ),
+            'maxenrolled' => array(
+                'output' => 'customint5',
+                'required' => 0,
+                'default' => 0,
+            ),
+            'notificationtext' => array(
+                'output' => 'customtext1',
+                'required' => 0,
+                'default' => '',
+            ),
+        );
+
+        if ($map) {
+            return $scriptmap;
+        } else {
+            return $scriptdesc;
+        }
+    }
+
+    /**
+     * Checks incoming attributes and give report
+     * @return 
+     */
+    public function script_check(&$context, &$handler) {
+        global $USER, $DB;
+
+        $fieldname = trim($context->params->profilefield);
+        if (preg_match('/^profile_field_/', $fieldname)) {
+            $fieldname = str_replace('profile_field_', '', $fieldname);
+            if (!$DB->get_record('user_info_field', array('shortname' => $fieldname))) {
+                $handler->error('Unkown user attribute '.$fieldname);
+            }
+        } else {
+            /*
+             * this is just a control of existance in the standard profile.
+             * Real $USER data is not engaged.
+             */
+            if (!isset($USER->$fieldname)) {
+                $handler->error('Unkown user attribute '.$fieldname);
             }
         }
     }

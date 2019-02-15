@@ -60,6 +60,10 @@ $string['newcourseenrol'] = 'Un nouveau participant s\'est inscrit au cours {$a}
 $string['nonexistantprofilefielderror'] = 'Ce champ personnalisé de profil utilisateur n\'existe pas (ou plus)';
 $string['notificationtext'] = 'Modèle de notification aux enseignants';
 $string['notificationtext_help'] = 'Le contenu de la notification envoyée aux enseignants du cours peut être écrite ici, en utilisant des emplacements &lt;%%USERNAME%%&gt;, &lt;%%COURSE%%&gt;, &lt;%%URL%%&gt; and &lt;%%TEACHER%%&gt;. Notez que les balises multilingues seront traitées, selon la langue du destinataire.';
+$string['overridegroupassword'] = 'Outrepasser les mots de passe';
+$string['overridegroupassword_help'] = 'Si actif, alors l\'inscription traitera l\'adhésion aux groupes indépendamment des éventuels mots de passe qui y ont été définis.';
+$string['maxenrolled'] = 'Nombre d\'inscrits max.';
+$string['maxenrolled_help'] = 'Nombre d\'inscrits maximum avec cette méthode. 0 signifie pas de limite.';
 $string['notifymanagers'] = 'Notifier les enseignants ?';
 $string['passwordinvalid'] = 'Le mot de passe est invalide';
 $string['pluginname'] = 'Inscription basée sur le profil utilisateur';
@@ -69,6 +73,24 @@ $string['profilevalue'] = 'Valeur attendue';
 $string['status'] = 'Activer l\'instance';
 $string['unenrolself'] = 'Se désinscrire du cours "{$a}"?';
 $string['unenrolselfconfirm'] = 'Voulez-vous vraiment vous désinscrire du cours "{$a}"?';
+$string['overridegrouppassword'] = 'Passer outre le mot de passe de groupe';
+
+$string['pluginname_desc'] = 'Réglage pour l\'inscription par profil';
+$string['configmultiplefields'] = 'Les règles de profils utilisent ';
+$string['configmultiplefields_desc'] = '';
+$string['singlefield'] = 'un seul champ de profil';
+$string['multiplefields'] = 'plusieurs champs de profil';
+$string['profilefields'] = 'Expression ';
+$string['profilevalues'] = 'Valeurs de champs (dans l\'ordre)';
+$string['usableprofilefields'] = 'Noms de champs utilisables';
+$string['profilefieldmultiple'] = 'Attributs et champs de profils';
+$string['profilevaluemultiple'] = 'Valeurs d\'attributs et de profil';
+
+$string['profilefieldmultiple_help'] = 'Entrez une expression logique construite à partir de noms de champs, d\'attributs utilisateur
+et d\'opérateurs OR ou AND. Ne mentionnez AUCUNE valeur ici. Ex. "profil_field_audience AND country"';
+
+$string['profilevaluemultiple_help'] = 'Entrez les valeurs attendues pour chacune des occurrences de champ ou d\'attribut,
+exprimées dans l\'ordre et séparées par des virgules. Les espaces avant et arrière seront ignorés.';
 
 $string['defaultnotification'] = '
 Bonjour <%%TEACHER%%>,
@@ -77,3 +99,8 @@ l\'utilisateur <%%USERNAME%%> s\'est inscrit (par correspondance de profil) dans
 
 Vous pouvez accéder à son profil <a href="<%%URL%%>">ici</a> après vous être connecté.
 ';
+
+$string['overridegrouppassword_help'] = 'Si activé, les utilisateurs dont le profil correspond au critère seront
+inscrits dans le cours et le groupe associé, même si un mot de passe verrouille l\'entrée du groupe. Sinon, l\'utilisateur
+qui arrive devant cette inscription devra fournir le mot de passe de groupe en plus d\'avoir le profil demandé. Ce réglage
+est automatiquement actif si l\'instance d\'inscription est en mode automatique.';
