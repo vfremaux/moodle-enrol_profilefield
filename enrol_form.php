@@ -41,7 +41,7 @@ class enrol_profilefield_enrol_form extends moodleform {
     }
 
     public function definition() {
-        global $DB;
+        global $DB, $COURSE;
 
         $mform = $this->_form;
         $instance = $this->_customdata;
@@ -51,10 +51,11 @@ class enrol_profilefield_enrol_form extends moodleform {
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'profilefieldheader', $heading);
 
-        if ($instance->customint3 > 0) {
+        // Customint5 : enrolment limit.
+        if ($instance->customint5 > 0) {
             // Max enrol limit specified.
             $count = $DB->count_records('user_enrolments', array('enrolid' => $instance->id));
-            if ($count >= $instance->customint3) {
+            if ($count >= $instance->customint5) {
 
                 // Bad luck, no more self enrolments here.
                 $this->toomany = true;
@@ -63,9 +64,50 @@ class enrol_profilefield_enrol_form extends moodleform {
             }
         }
 
-        // Change the id of self enrolment key input as there can be multiple self enrolment methods.
-        $params = array('id' => $instance->id.'_enrolpassword');
-        $mform->addElement('passwordunmask', 'enrolpassword', get_string('grouppassword', 'enrol_profilefield'), $params);
+        // If No autogrouping and group passwords not overriden collect an eventual password to present with the group request.
+        // customint3 : Autogrouping
+        // customint4 : Overridegrouppasswords
+        if ($instance->customint3 == 0 && empty($instance->customint4)) {
+
+            $sql = "
+                SELECT
+                    g.id,
+                    g.name,
+                    g.enrolmentkey
+                FROM
+                    {groups} g
+                LEFT JOIN
+                    {groups_groupings} gg
+                ON
+                    g.id = gg.groupid
+                JOIN
+                    {groups_groupings} gr
+                ON
+                    gg.groupingid = gr.id
+                WHERE
+                    gr.id IS NULL OR gr.name != '_auto_' AND
+                    g.courseid = :courseid
+            ";
+
+            $groupchoice = $DB->get_records_sql($sql, array('courseid' => $COURSE->id), 'g.id, g.name', 'name');
+            if (!empty($groupchoice)) {
+
+                $needspass = false;
+                $groupopts = array();
+                foreach ($groupchoice as $groupopt) {
+                    if ($groupdef->enrolmentkey) {
+                        $needspass = true;
+                    }
+                    $groupopts[$groupopt->id] = $groupopt->name;
+                }
+
+                $groupoptions = array('' => get_string('none')) + $groupchoice;
+                $mform->addElement('select', 'group', get_string('group'), $groupchoice);
+
+                $params = array('id' => $instance->id.'_enrolpassword');
+                $mform->addElement('passwordunmask', 'enrolpassword', get_string('grouppassword', 'enrol_profilefield'), $params);
+            }
+        }
 
         $this->add_action_buttons(false, get_string('enrolme', 'enrol_profilefield'));
 

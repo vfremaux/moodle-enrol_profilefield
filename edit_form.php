@@ -34,6 +34,8 @@ class enrol_profilefield_edit_form extends moodleform {
     public function definition() {
         global $DB;
 
+        $config = get_config('enrol_profilefield');
+
         $mform = $this->_form;
 
         list($roles, $mode) = $this->_customdata;
@@ -46,7 +48,7 @@ class enrol_profilefield_edit_form extends moodleform {
 
         $mform->addElement('header', 'header', get_string('pluginname', 'enrol_profilefield'));
 
-        $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'));
+        $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'), array('size' => 32));
         $mform->setType('name', PARAM_TEXT);
 
         $options = array(ENROL_INSTANCE_ENABLED  => get_string('yes'),
@@ -69,19 +71,37 @@ class enrol_profilefield_edit_form extends moodleform {
             'city' => get_string('city'),
         );
 
-        $userextrafields = $DB->get_records('user_info_field', array());
-        if ($userextrafields) {
-            foreach ($userextrafields as $uf) {
-                $userfields['profile_field_'.$uf->shortname] = $uf->name;
+        // Customchar1.
+        if ($config->multiplefields == SINGLE_FIELD) {
+            $userextrafields = $DB->get_records('user_info_field', array());
+            if ($userextrafields) {
+                foreach ($userextrafields as $uf) {
+                    $userfields['profile_field_'.$uf->shortname] = $uf->name;
+                }
             }
+            $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
+        } else {
+            $allfields = $DB->get_records('user_info_field', array(), 'name', 'shortname, name');
+            foreach($allfields as $f) {
+                $fieldnames[] = 'profile_field_'.$f->shortname;
+            }
+            $help = implode(', ', $fieldnames);
+            $mform->addElement('static', 'profilefieldhelp', get_string('usableprofilefields', 'enrol_profilefield'), $help);
+
+            $mform->addElement('text', 'profilefield', get_string('profilefields', 'enrol_profilefield'), array('size' => 80));
+            $mform->addHelpButton('profilefield', 'profilefieldmultiple', 'enrol_profilefield');
+            $mform->setType('profilefield', PARAM_TEXT);
         }
 
-        // Customchar1.
-        $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
-
-        // Customchar2.
-        $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'), array('size' => 10));
-        $mform->setType('profilevalue', PARAM_TEXT);
+        // Customtext2.
+        if ($config->multiplefields == SINGLE_FIELD) {
+            $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'));
+            $mform->setType('profilevalue', PARAM_TEXT);
+        } else {
+            $mform->addElement('text', 'profilevalue', get_string('profilevalues', 'enrol_profilefield'), array('size' => 80));
+            $mform->addHelpButton('profilevalue', 'profilevaluemultiple', 'enrol_profilefield');
+            $mform->setType('profilevalue', PARAM_TEXT);
+        }
 
         $mform->addElement('select', 'roleid', get_string('assignrole', 'enrol_profilefield'), $roles);
 
@@ -104,6 +124,15 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->setType('autogroup', PARAM_INT);
         $mform->addHelpButton('autogroup', 'groupon', 'enrol_profilefield');
         $mform->setDefault('autogroup', 0);
+
+        // Customint 4
+        $mform->addElement('checkbox', 'overridegrouppassword', get_string('overridegrouppassword', 'enrol_profilefield'));
+        $mform->addHelpButton('overridegrouppassword', 'overridegrouppassword', 'enrol_profilefield');
+        $mform->DisabledIf('overridegrouppassword', 'autogroup', 'eq', 0);
+
+        // Customint 5
+        $mform->addElement('text', 'maxenrolled', get_string('maxenrolled', 'enrol_profilefield'), array('size' => 4));
+        $mform->setType('maxenrolled', PARAM_INT);
 
         $params = array('optional' => true, 'defaultunit' => 86400);
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_profilefield'), $params);
