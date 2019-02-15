@@ -14,23 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Database enrolment plugin version specification.
- *
- * @package    enrol_profilefield
- * @category   enrol
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  2012 Valery Fremaux
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+namespace enrol_profilefield\privacy;
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2019021200; // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2017110800; // Requires this Moodle version.
-$plugin->component = 'enrol_profilefield'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_RC;
-$plugin->release = '3.4.0 (Build 2019021200)';
-
-// Non Moodle attributes.
-$plugin->codeincrement = '3.4.0001';
+class provider implements \core_privacy\local\metadata\null_provider {
+}
