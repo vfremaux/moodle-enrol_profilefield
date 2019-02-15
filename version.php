@@ -26,11 +26,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2014052200; // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2019021200; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2018042700; // Requires this Moodle version.
 $plugin->component = 'enrol_profilefield'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_RC;
-$plugin->release = '3.5.0 (Build 2014052200)';
+$plugin->release = '3.5.0 (Build 2019021200)';
 
 // Non Moodle attributes.
-$plugin->codeincrement = '3.5.0000';
+$plugin->codeincrement = '3.5.0001';

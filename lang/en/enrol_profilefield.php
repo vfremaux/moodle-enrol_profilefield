@@ -52,6 +52,10 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrolment is vali
 $string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user is enrolled. If disabled, the enrolment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can be enrolled from this date onward only.';
+$string['overridegroupassword'] = 'Override group password';
+$string['maxenrolled'] = 'Max enrolments';
+$string['maxenrolled_help'] = 'Max enrolments on this enrol method. 0 means no limit.';
+$string['overridegroupassword_help'] = 'If enabled, group membership will be processed independently from any password restriction for groups.';
 $string['emptyfield'] = 'No {$a}';
 $string['groupon'] = 'Group By';
 $string['g_none'] = 'No grouping, or choose...';
@@ -76,6 +80,24 @@ $string['profilevalue_desc'] = '';
 $string['status'] = 'Allow using profile to enrol';
 $string['unenrolself'] = 'Unenroll from course "{$a}"?';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+$string['overridegrouppassword'] = 'Override group password';
+
+$string['pluginname_desc'] = 'Settings for profile field enrolment';
+$string['configmultiplefields'] = 'Fields rule uses ';
+$string['configmultiplefields_desc'] = '';
+$string['singlefield'] = 'single field';
+$string['multiplefields'] = 'multiple fields';
+$string['profilefields'] = 'Profile expression';
+$string['profilevalues'] = 'Expected values (in order)';
+$string['usableprofilefields'] = 'Usable field names';
+$string['profilefieldmultiple'] = 'Profile and attribute fields';
+$string['profilevaluemultiple'] = 'Profile and attribute values';
+
+$string['profilefieldmultiple_help'] = 'Enter a logical expression using profile field names or user attributes and operators OR or AND.
+Do NOT mention values here. E.g  "profil_field_audience AND country"';
+
+$string['profilevaluemultiple_help'] = 'Enter expected values for each mentionned feld or attribute, in order, comma separated.
+Values will be trimmed of any leading or trailing spaces.';
 
 $string['defaultnotification'] = '
 Dear <%%TEACHER%%>,
@@ -84,3 +106,8 @@ the new user <%%USERNAME%%> has enrolled himself (profile agreed) in your course
 
 You can check his profile <a href="<%%URL%%>">here</a> after loggin in.
 ';
+
+$string['overridegrouppassword_help'] = 'If enabled, then the user will be enrolled in the course and the group event
+if the group has an entrance password required. Otherwise the password for admittance to the group will be asked
+to the user in addition for him to present the require profile condition. this setting is forced active when
+the enrol instance automated mode is on.';
