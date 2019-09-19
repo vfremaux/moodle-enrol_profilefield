@@ -151,7 +151,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
             $actions[] = new user_enrolment_action(new pix_icon('t/delete', ''), get_string('unenrol', 'enrol'), $url, $attrs);
         }
         if ($this->allow_manage($instance) && has_capability('enrol/profilefield:manage', $context)) {
-            $url = new moodle_url('/enrol/profilefield/editenrolment.php', $params);
+            $url = new moodle_url('/enrol/editenrolment.php', $params);
             $attrs = array('class' => 'editenrollink', 'rel' => $ue->id);
             $actions[] = new user_enrolment_action(new pix_icon('t/edit', ''), get_string('edit'), $url, $attrs);
         }
