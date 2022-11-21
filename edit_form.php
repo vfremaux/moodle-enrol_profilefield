@@ -32,7 +32,7 @@ require_once($CFG->libdir.'/formslib.php');
 class enrol_profilefield_edit_form extends moodleform {
 
     public function definition() {
-        global $DB;
+        global $DB, $COURSE;
 
         $config = get_config('enrol_profilefield');
 
@@ -69,6 +69,7 @@ class enrol_profilefield_edit_form extends moodleform {
             'institution' => get_string('institution'),
             'department' => get_string('department'),
             'city' => get_string('city'),
+            'idnumber' => get_string('idnumber')
         );
 
         // Customchar1.
@@ -82,7 +83,7 @@ class enrol_profilefield_edit_form extends moodleform {
             $mform->addElement('select', 'profilefield', get_string('profilefield', 'enrol_profilefield'), $userfields);
         } else {
             $allfields = $DB->get_records('user_info_field', array(), 'name', 'shortname, name');
-            foreach($allfields as $f) {
+            foreach ($allfields as $f) {
                 $fieldnames[] = 'profile_field_'.$f->shortname;
             }
             $help = implode(', ', $fieldnames);
@@ -96,6 +97,7 @@ class enrol_profilefield_edit_form extends moodleform {
         // Customtext2.
         if ($config->multiplefields == SINGLE_FIELD) {
             $mform->addElement('text', 'profilevalue', get_string('profilevalue', 'enrol_profilefield'));
+            $mform->addHelpButton('profilevalue', 'profilevalue', 'enrol_profilefield');
             $mform->setType('profilevalue', PARAM_TEXT);
         } else {
             $mform->addElement('text', 'profilevalue', get_string('profilevalues', 'enrol_profilefield'), array('size' => 80));
@@ -113,15 +115,22 @@ class enrol_profilefield_edit_form extends moodleform {
         $mform->setType('notificationtext', PARAM_CLEANHTML);
         $mform->addHelpButton('notificationtext', 'notificationtext', 'enrol_profilefield');
 
-        // Customint3.
-        $fields = array(get_string('g_none', 'enrol_profilefield'),
-                get_string('g_auth', 'enrol_profilefield'),
-                get_string('g_dept', 'enrol_profilefield'),
-                get_string('g_inst', 'enrol_profilefield'),
-                get_string('g_lang', 'enrol_profilefield'));
+        // Customchar3.
+        $fields = array(0 => get_string('g_none', 'enrol_profilefield'),
+                1 => get_string('g_auth', 'enrol_profilefield'),
+                2 => get_string('g_dept', 'enrol_profilefield'),
+                3 => get_string('g_inst', 'enrol_profilefield'),
+                4 => get_string('g_lang', 'enrol_profilefield'));
+
+        $coursegroups = groups_get_all_groups($COURSE->id);
+        if (!empty($coursegroups)) {
+            foreach ($coursegroups as $g) {
+                $fields['g'.$g->id] = $g->name;
+            }
+        }
 
         $mform->addElement('select', 'autogroup', get_string('groupon', 'enrol_profilefield'), $fields);
-        $mform->setType('autogroup', PARAM_INT);
+        $mform->setType('autogroup', PARAM_TEXT);
         $mform->addHelpButton('autogroup', 'groupon', 'enrol_profilefield');
         $mform->setDefault('autogroup', 0);
 
@@ -153,11 +162,22 @@ class enrol_profilefield_edit_form extends moodleform {
 
     public function validation($data, $files) {
 
+        $config = get_config('enrol_profilefield');
         $errors = parent::validation($data, $files);
 
         if ($data['status'] == ENROL_INSTANCE_ENABLED) {
             if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
                 $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_profilefield');
+            }
+        }
+
+        if ($config->multiplefields == MULTIPLE_FIELDS) {
+            $profilefields = preg_match_all('/\bAND|OR\b/', $data['profilefield'], $matches);
+            $pffs = count($matches[0]) + 1;
+            $profilevalues = explode(',', $data['profilevalue']);
+            $pfvs = count($profilevalues);
+            if ($pffs != $pfvs) {
+                $errors['profilevalue'] = get_string('profiledefnotmatch', 'enrol_profilefield');
             }
         }
 

@@ -81,6 +81,7 @@ $string['status'] = 'Allow using profile to enrol';
 $string['unenrolself'] = 'Unenroll from course "{$a}"?';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['overridegrouppassword'] = 'Override group password';
+$string['profiledefnotmatch'] = 'Fields and expected values counts must match';
 
 $string['pluginname_desc'] = 'Settings for profile field enrolment';
 $string['configmultiplefields'] = 'Fields rule uses ';
@@ -106,6 +107,8 @@ the new user <%%USERNAME%%> has enrolled himself (profile agreed) in your course
 
 You can check his profile <a href="<%%URL%%>">here</a> after loggin in.
 ';
+
+$string['profilevalue_help'] = 'You can use the prefix \'REGEXP:\' to give a matching regular expression applied to the field value, rather than simple equality.';
 
 $string['overridegrouppassword_help'] = 'If enabled, then the user will be enrolled in the course and the group event
 if the group has an entrance password required. Otherwise the password for admittance to the group will be asked

@@ -29,6 +29,12 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+if (!function_exists('debug_trace')) {
+    function debug_trace($msg, $level = 0, $label = '') {
+        assert(1);
+    }
+}
+
 define('SINGLE_FIELD', 0);
 define('MULTIPLE_FIELDS', 1);
 
@@ -263,7 +269,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
         if ($config->multiplefields == SINGLE_FIELD) {
             $profilefield = $instance->customchar1;
-            $profilevalue = $instance->customtext2;
+            $profilevalue = (!empty($instance->customtext2)) ? $instance->customtext2 : '';
 
             if (preg_match('/^profile_field_(.*)$/', $profilefield, $matches)) {
                 // Case of user custom fields.
@@ -274,14 +280,37 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
                 $params = array('userid' => $user->id, 'fieldid' => $pfield->id);
                 $uservalue = $DB->get_field('user_info_data', 'data', $params);
-                if ($uservalue == $profilevalue) {
-                    return true;
+                if (strpos($profilevalue, 'REGEXP:') === 0) {
+                    $profilevalue = trim(preg_replace('/^REGEXP:/', '', $profilevalue));
+                    if (preg_match('/'.$profilevalue.'/', $uservalue)) {
+                        return true;
+                    } else {
+                        debug_trace("Not matching because Regexp /{$profilevalue}/ failed");
+                    }
+                } else {
+                    if ($uservalue == $profilevalue) {
+                        return true;
+                    } else {
+                        debug_trace("Not matching because values not equal to {$profilevalue}");
+                    }
                 }
             } else {
                 // We guess it is a standard user attribute.
                 if (isset($user->$profilefield)) {
-                    if ($profilevalue == $user->$profilefield) {
-                        return true;
+                    $uservalue = $user->$profilefield;
+                    if (strpos($profilevalue, 'REGEXP:') === 0) {
+                        $profilevalue = trim(preg_replace('/^REGEXP:/', '', $profilevalue));
+                        if (preg_match('/'.$profilevalue.'/', $uservalue)) {
+                            return true;
+                        } else {
+                            debug_trace("Not matching because Regexp /{$profilevalue}/ in '$uservalue' failed");
+                        }
+                    } else {
+                        if ($uservalue == $profilevalue) {
+                            return true;
+                        } else {
+                            debug_trace("Not matching because values not equal to {$profilevalue}");
+                        }
                     }
                 }
             }
@@ -329,8 +358,10 @@ class enrol_profilefield_plugin extends enrol_plugin {
                 }
             }
 
-            if (count($profilevalues) != count($fields)) {
-                echo $OUTPUT->notification('Fields and expected values count do not match', 'error');
+            if (count($profilevalues) != count($fields) && ($CFG->debug == DEBUG_DEVELOPER)) {
+                $msg = 'Profile field enrol: Fields and expected values count do not match in instance '.$instance->id;
+                $msg .= ' and course '.$instance->cid;
+                echo $OUTPUT->notification($msg, 'notifyerror');
             }
 
             $expression = '$result = ';
@@ -413,31 +444,42 @@ class enrol_profilefield_plugin extends enrol_plugin {
      * @param object $user
      */
     private function process_group(stdClass $instance, $user) {
-        global $CFG;
+        global $CFG, $DB;
 
-        if ($instance->customint3 != 0) {
+        if ($instance->customchar3 != '') {
             require_once($CFG->dirroot . '/group/lib.php');
 
-            $types = array(1 => $user->auth, $user->department, $user->institution, $user->lang);
+            if (!strpos($instance->customchar3, 'g') === false) {
+                // Pure numeric is an 1,2,3,4 option.
+                $types = array($user->auth, $user->department, $user->institution, $user->lang);
+                $groupname = $types[$instance->customchar3];
 
-            $name = $types[$instance->customint3];
+                if (!strlen($name)) {
+                    $filtertype = array(get_string('g_none', 'enrol_autoenrol'),
+                        get_string('g_auth', 'enrol_profilefield'),
+                        get_string('g_dept', 'enrol_profilefield'),
+                        get_string('g_inst', 'enrol_profilefield'),
+                        get_string('g_lang', 'enrol_profilefield'));
 
-            if (!strlen($name)) {
-                $filtertype = array(get_string('g_none', 'enrol_autoenrol'),
-                    get_string('g_auth', 'enrol_profilefield'),
-                    get_string('g_dept', 'enrol_profilefield'),
-                    get_string('g_inst', 'enrol_profilefield'),
-                    get_string('g_lang', 'enrol_profilefield'));
+                    $groupname = get_string('emptyfield', 'enrol_profilefield', $filtertype[$instance->customchar3]);
+                }
 
-                $name = get_string('emptyfield', 'enrol_profilefield', $filtertype[$instance->customint3]);
+                $group = $this->get_group($instance, $groupname);
+            } else {
+                // Course Group is using pattern g<groupid> - <groupname> @see edit_form.php.
+                $groupid = str_replace('g', '', $instance->customchar3);
+                $group = $DB->get_record('groups', ['id' => $groupid]);
+                if (!$group) {
+                    // Group has been removed ?
+                    return;
+                }
             }
-
-            $group = $this->get_group($instance, $name);
             return groups_add_member($group, $user->id);
         }
     }
 
     /**
+     * Get or autocreate a group for routing profile enroled users.
      * @param stdClass $instance
      * @param $name
      * @param moodle_database $DB
@@ -532,7 +574,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
             'profilevalue' => 'customtext2',
             'notifymanagers' => 'customint1',
             'auto' => 'customint2',
-            'autogroup' => 'customint3',
+            'autogroup' => 'customchar3',
             'overridegrouppassword' => 'customint4',
             'maxenrolled' => 'customint5',
             'notificationtext' => 'customtext1',
@@ -586,7 +628,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
                 'default' => 0,
             ),
             'autogroup' => array(
-                'output' => 'customint3',
+                'output' => 'customchar3',
                 'required' => 0,
                 'default '=> 0,
             ),

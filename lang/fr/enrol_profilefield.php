@@ -54,11 +54,11 @@ $string['emptyfield'] = 'Sans {$a}';
 $string['grouppassword'] = 'Mot de passe pour l\'inscription à un groupe, s\'il est connu.';
 $string['groupon'] = 'Grouper par';
 $string['g_none'] = 'Pas de groupage, ou choisir...';
-$string['g_auth'] = 'Méthode d\'autentification';
+$string['g_auth'] = 'Méthode d\'authentification';
 $string['g_dept'] = 'Départment';
 $string['g_inst'] = 'Institution';
 $string['g_lang'] = 'Langue';
-$string['groupon_help'] = 'Cette méthode d\'authentification peut créer et mettre l\'utilisateur dans des groupes au moment de son inscription.';
+$string['groupon_help'] = 'Cette méthode d\'inscription peut créer et mettre l\'utilisateur dans des groupes au moment de son ajout dans le cours.';
 $string['newcourseenrol'] = 'Un nouveau participant s\'est inscrit au cours {$a}';
 $string['nonexistantprofilefielderror'] = 'Ce champ personnalisé de profil utilisateur n\'existe pas (ou plus)';
 $string['notificationtext'] = 'Modèle de notification aux enseignants';
@@ -77,6 +77,7 @@ $string['status'] = 'Activer l\'instance';
 $string['unenrolself'] = 'Se désinscrire du cours "{$a}"?';
 $string['unenrolselfconfirm'] = 'Voulez-vous vraiment vous désinscrire du cours "{$a}"?';
 $string['overridegrouppassword'] = 'Passer outre le mot de passe de groupe';
+$string['profiledefnotmatch'] = 'Le nombre de champs  et de valeurs associées exprimés doit correspondre';
 
 $string['pluginname_desc'] = 'Réglage pour l\'inscription par profil';
 $string['configmultiplefields'] = 'Les règles de profils utilisent ';
@@ -90,7 +91,7 @@ $string['profilefieldmultiple'] = 'Attributs et champs de profils';
 $string['profilevaluemultiple'] = 'Valeurs d\'attributs et de profil';
 
 $string['profilefieldmultiple_help'] = 'Entrez une expression logique construite à partir de noms de champs, d\'attributs utilisateur
-et d\'opérateurs OR ou AND. Ne mentionnez AUCUNE valeur ici. Ex. "profil_field_audience AND country"';
+et d\'opérateurs OR ou AND. Ne mentionnez AUCUNE valeur ici. Ex. "profile_field_audience AND country"';
 
 $string['profilevaluemultiple_help'] = 'Entrez les valeurs attendues pour chacune des occurrences de champ ou d\'attribut,
 exprimées dans l\'ordre et séparées par des virgules. Les espaces avant et arrière seront ignorés.';
@@ -102,6 +103,8 @@ l\'utilisateur <%%USERNAME%%> s\'est inscrit (par correspondance de profil) dans
 
 Vous pouvez accéder à son profil <a href="<%%URL%%>">ici</a> après vous être connecté.
 ';
+
+$string['profilevalue_help'] = 'En ajoutant le préfixe \'REGEXP:\' vour pouvez définir un motif de correspondance appliqué à la valeur du champ, plutôt qu\'une égalité simple, par exemple : "^(prefixe1|prefixe2)"';
 
 $string['overridegrouppassword_help'] = 'Si activé, les utilisateurs dont le profil correspond au critère seront
 inscrits dans le cours et le groupe associé, même si un mot de passe verrouille l\'entrée du groupe. Sinon, l\'utilisateur

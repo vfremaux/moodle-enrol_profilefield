@@ -51,6 +51,12 @@ function xmldb_enrol_profilefield_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2019021200, 'enrol', 'profilefield');
     }
 
+    if ($oldversion < 2020050800) {
+        convert_profile3_value();
+
+        upgrade_plugin_savepoint(true, 2020050800, 'enrol', 'profilefield');
+    }
+
     return true;
 }
 
@@ -64,6 +70,22 @@ function convert_profile_value() {
     if (!empty($enrols)) {
         foreach ($enrols as $e) {
             $e->customtext2 = $e->customchar2;
+            $DB->update_record('enrol', $e);
+        }
+    }
+    mtrace('Done.');
+}
+
+function convert_profile3_value() {
+    global $DB;
+
+    mtrace('Copying customint3 to customchar3');
+    $params = array('enrol' => 'profilefied');
+    $enrols = $DB->get_records('enrol', $params);
+
+    if (!empty($enrols)) {
+        foreach ($enrols as $e) {
+            $e->customchar3 = $e->customint3;
             $DB->update_record('enrol', $e);
         }
     }

@@ -65,7 +65,7 @@ if ($instanceid) {
     $instance->customtext2 = ''; // Profile value.
     $instance->customint1 = 1; // Notifies teachers of entry by default.
     $instance->customint2 = 0; // Not automated.
-    $instance->customint3 = 0; // Without grouping.
+    $instance->customchar3 = ''; // Without grouping.
     $instance->customint4 = 0; // Override passwords.
     $instance->customint5 = 0; // Max enrolled amount.
     $instance->customtext1 = format_text(get_string('defaultnotification', 'enrol_profilefield')); // Notification for teachers.
@@ -88,7 +88,7 @@ if ($mform->is_cancelled()) {
         $instance->roleid         = $data->roleid;
         $instance->customint1     = 0 + @$data->notifymanagers; // Checkbox.
         $instance->customint2     = 0 + @$data->auto; // Checkbox.
-        $instance->customint3     = 0 + @$data->autogroup; // Select.
+        $instance->customchar3     = @$data->autogroup; // Select.
         $instance->customint4     = 0 + @$data->overridegrouppassword; // Checkbox.
         $instance->customint5     = 0 + @$data->maxenrolled; // Text.
         $instance->customtext1    = $data->notificationtext;
@@ -110,7 +110,7 @@ if ($mform->is_cancelled()) {
                         'name' => $data->name,
                         'customint1' => @$data->notifymanagers,
                         'customint2' => $data->auto,
-                        'customint3' => $data->autogroup,
+                        'customchar3' => $data->autogroup,
                         'customint4' => @$data->overridegrouppassword,
                         'customint5' => $data->maxenrolled,
                         'customtext1' => $data->notificationtext,
@@ -136,7 +136,7 @@ if ($instanceid) {
     $formdata->id = $instance->id;
     $formdata->courseid = $courseid;
     $formdata->auto = $instance->customint2;
-    $formdata->autogroup = $instance->customint3;
+    $formdata->autogroup = $instance->customchar3;
     $formdata->profilefield = $instance->customchar1;
     $formdata->profilevalue = $instance->customtext2;
     $formdata->notifymanagers = $instance->customint1;

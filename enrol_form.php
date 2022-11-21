@@ -77,11 +77,11 @@ class enrol_profilefield_enrol_form extends moodleform {
                 FROM
                     {groups} g
                 LEFT JOIN
-                    {groups_groupings} gg
+                    {groupings_groups} gg
                 ON
                     g.id = gg.groupid
                 JOIN
-                    {groups_groupings} gr
+                    {groupings} gr
                 ON
                     gg.groupingid = gr.id
                 WHERE
