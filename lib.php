@@ -30,8 +30,17 @@
 defined('MOODLE_INTERNAL') || die();
 
 if (!function_exists('debug_trace')) {
-    function debug_trace($msg, $level = 0, $label = '') {
-        assert(1);
+    @include_once($CFG->dirroot.'/local/advancedperfs/debugtools.php');
+    if (!function_exists('debug_trace')) {
+        function debug_trace($msg, $tracelevel = 0, $label = '', $backtracelevel = 1) {
+            // Fake this function if not existing in the target moodle environment.
+            assert(1);
+        }
+        define('TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
+        define('TRACE_NOTICE', 3); // Notices are important notices in normal execution.
+        define('TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
+        define('TRACE_DATA', 8); // Data level is when requiring to see data structures content.
+        define('TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
     }
 }
 
@@ -660,22 +669,28 @@ class enrol_profilefield_plugin extends enrol_plugin {
      * Checks incoming attributes and give report
      * @return 
      */
-    public function script_check(&$context, &$handler) {
+    public function script_check($context, &$handler) {
         global $USER, $DB;
 
-        $fieldname = trim($context->params->profilefield);
-        if (preg_match('/^profile_field_/', $fieldname)) {
+        $profilefieldname = trim($context->params->profilefield);
+
+        if (empty($profilefieldname)) {
+            $handler->error('Enrol ProfileField Script input check : Empty user profile attribute ');
+            return;
+        }
+
+        if (preg_match('/^profile_field_/', $profilefieldname)) {
             $fieldname = str_replace('profile_field_', '', $fieldname);
             if (!$DB->get_record('user_info_field', array('shortname' => $fieldname))) {
-                $handler->error('Unkown user attribute '.$fieldname);
+                $handler->error('Enrol ProfileField Script input check : Unkown user profile attribute '.$fieldname);
             }
         } else {
             /*
              * this is just a control of existance in the standard profile.
              * Real $USER data is not engaged.
              */
-            if (!isset($USER->$fieldname)) {
-                $handler->error('Unkown user attribute '.$fieldname);
+            if (!isset($USER->$profilefieldname)) {
+                $handler->error('Enrol ProfileField Script input check : Unkown user attribute '.$fieldname);
             }
         }
     }
