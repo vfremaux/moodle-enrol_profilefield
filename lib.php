@@ -569,6 +569,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
     /**
      * Provides a mapping of script attributes to internal
      * storage attributes
+     * @see local_moodlescript handling
      * @return 
      */
     public function script_attributes($map = true) {
@@ -667,6 +668,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
 
     /**
      * Checks incoming attributes and give report
+     * @see local_moodlescript handling
      * @return 
      */
     public function script_check($context, &$handler) {
@@ -680,7 +682,8 @@ class enrol_profilefield_plugin extends enrol_plugin {
         }
 
         if (preg_match('/^profile_field_/', $profilefieldname)) {
-            $fieldname = str_replace('profile_field_', '', $fieldname);
+            debug_trace("Enrol ProfileField Script input check Locating profile field as ".$profilefieldname);
+            $fieldname = str_replace('profile_field_', '', $profilefieldname);
             if (!$DB->get_record('user_info_field', array('shortname' => $fieldname))) {
                 $handler->error('Enrol ProfileField Script input check : Unkown user profile attribute '.$fieldname);
             }
@@ -690,7 +693,7 @@ class enrol_profilefield_plugin extends enrol_plugin {
              * Real $USER data is not engaged.
              */
             if (!isset($USER->$profilefieldname)) {
-                $handler->error('Enrol ProfileField Script input check : Unkown user attribute '.$fieldname);
+                $handler->error('Enrol ProfileField Script input check : Unkown user attribute '.$profilefieldname);
             }
         }
     }
