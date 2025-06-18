@@ -18,7 +18,6 @@
  * Database enrolment plugin version specification.
  *
  * @package    enrol_profilefield
- * @category   enrol
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright  2012 Valery Fremaux
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,7 +30,7 @@ $plugin->requires  = 2022111800; // Requires this Moodle version.
 $plugin->component = 'enrol_profilefield'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '4.5.0 (Build 2020050800)';
-$plugin->supported = [401, 405];
+$plugin->supported = [403, 405];
 
 // Non Moodle attributes.
 $plugin->codeincrement = '4.5.0002';
